@@ -25,9 +25,15 @@ public class GsonRequest<T> extends Request<T> {
      * @param clazz Relevant class object, for Gson's reflection
      * @param headers Map of request headers
      */
-    public GsonRequest(String url, Class<T> clazz, Map<String, String> headers,
-                       Response.Listener<T> listener, Response.ErrorListener errorListener) {
-        super(Method.GET, url, errorListener);
+    public GsonRequest(
+            int method,
+            String url,
+            Class<T> clazz,
+            Map<String, String> headers,
+            Response.Listener<T> listener,
+            Response.ErrorListener errorListener
+    ) {
+        super(method, url, errorListener);
         this.clazz = clazz;
         this.headers = headers;
         this.listener = listener;

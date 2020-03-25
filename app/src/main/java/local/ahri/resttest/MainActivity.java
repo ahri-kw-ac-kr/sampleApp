@@ -14,6 +14,7 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.gson.Gson;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -60,19 +61,16 @@ public class MainActivity extends AppCompatActivity {
         RequestQueue queue = Volley.newRequestQueue(this);
         String url ="https://dakapo.wiki/json/test.json";
 
-        GsonRequest<MyTest> gsonRequest = new GsonRequest<> (
-                url, MyTest.class, null, new Response.Listener<MyTest>() {
-
+        GsonPostRequest<MyTest> gsonRequest = new GsonPostRequest<> (
+                Request.Method.POST, url, "{ a: 1 }", MyTest.class, new Gson(), new Response.Listener<MyTest>() {
                     @Override
                     public void onResponse(final MyTest response) {
                         textView.setText("Response: " + response.getMessage());
                     }
                 }, new Response.ErrorListener() {
-
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         // TODO: Handle error
-
                     }
                 });
 
