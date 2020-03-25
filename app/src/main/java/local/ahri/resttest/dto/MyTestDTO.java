@@ -2,15 +2,16 @@ package local.ahri.resttest.dto;
 
 import java.io.Serializable;
 
-public class MyTest implements Serializable {
+
+public class MyTestDTO implements Serializable {
     Long id;
     String message;
 
-    public MyTest() {
+    public MyTestDTO() {
 
     }
 
-    public MyTest(Long id, String message) {
+    public MyTestDTO(Long id, String message) {
         this.id = id;
         this.message = message;
     }

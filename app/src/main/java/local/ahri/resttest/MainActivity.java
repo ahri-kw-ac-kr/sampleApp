@@ -1,40 +1,30 @@
 package local.ahri.resttest;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 
-import com.android.volley.NetworkResponse;
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.JsonRequest;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
-import com.google.gson.Gson;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import android.util.JsonReader;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 
-import org.json.JSONObject;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.io.IOException;
 
-import javax.net.ssl.HttpsURLConnection;
+import local.ahri.resttest.dto.MyTestDTO;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
-import local.ahri.resttest.dto.MyTest;
+
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -54,28 +44,25 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        final TextView textView = (TextView) findViewById(R.id.mytext);
-// ...
+        final TextView textView = findViewById(R.id.mytext);
 
-// Instantiate the RequestQueue.
-        RequestQueue queue = Volley.newRequestQueue(this);
-        String url ="https://dakapo.wiki/json/test.json";
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://dakapo.wiki/json/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        MyTestService service = retrofit.create(MyTestService.class);
 
-        GsonPostRequest<MyTest> gsonRequest = new GsonPostRequest<> (
-                Request.Method.POST, url, "{ a: 1 }", MyTest.class, new Gson(), new Response.Listener<MyTest>() {
-                    @Override
-                    public void onResponse(final MyTest response) {
-                        textView.setText("Response: " + response.getMessage());
-                    }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        // TODO: Handle error
-                    }
-                });
+        service.get().enqueue(new Callback<MyTestDTO>() {
+            @Override
+            public void onResponse(Call<MyTestDTO> call, Response<MyTestDTO> response) {
+                MyTestDTO myTestDTO = response.body();
+                textView.setText(myTestDTO.getMessage());
+            }
+            @Override
+            public void onFailure(Call<MyTestDTO> call, Throwable t) {
+            }
+        });
 
-// Add the request to the RequestQueue.
-        queue.add(gsonRequest);
     }
 
     @Override
