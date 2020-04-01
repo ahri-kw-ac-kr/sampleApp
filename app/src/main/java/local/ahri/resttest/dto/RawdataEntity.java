@@ -1,6 +1,7 @@
 package local.ahri.resttest.dto;
 
 import java.io.Serializable;
+import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.List;
 
@@ -24,6 +25,72 @@ public class RawdataEntity implements Serializable {
     private short vectorY;
     private short vectorZ;
     private UserEntity user;
+
+    /*
+    24 byte length
+    9 fields
+    [][][][]  - StartTick
+    [][][][]  - End Tick
+    [][]      - Steps
+    [][][][]  - totalLux
+    [][]      - avgLux
+    [][]      - avgTemp
+    [][]      - vectorX
+    [][]      - vectorY
+    [][]      - vectorZ
+     */
+    public static RawdataEntity ParseBytearray(byte[] data) {
+        RawdataEntity res = new RawdataEntity();
+        int offset = 0;
+        byte[] chunk4 = new byte[4];
+        byte[] chunk2 = new byte[2];
+
+        // StartTick
+        System.arraycopy(data, offset, chunk4, 0, chunk4.length);
+        res.setStartTick(ByteBuffer.wrap(chunk4).order(java.nio.ByteOrder.LITTLE_ENDIAN).getInt());
+        offset += chunk4.length;
+
+        // EndTick
+        System.arraycopy(data, offset, chunk4, 0, chunk4.length);
+        res.setEndTick(ByteBuffer.wrap(chunk4).order(java.nio.ByteOrder.LITTLE_ENDIAN).getInt());
+        offset += chunk4.length;
+
+        // Steps
+        System.arraycopy(data, offset, chunk2, 0, chunk2.length);
+        res.setSteps(ByteBuffer.wrap(chunk2).order(java.nio.ByteOrder.LITTLE_ENDIAN).getShort());
+        offset += chunk2.length;
+
+        // TotalLux
+        System.arraycopy(data, offset, chunk4, 0, chunk4.length);
+        res.setTotalLux(ByteBuffer.wrap(chunk4).order(java.nio.ByteOrder.LITTLE_ENDIAN).getInt());
+        offset += chunk4.length;
+
+        // Average Lux
+        System.arraycopy(data, offset, chunk2, 0, chunk2.length);
+        res.setAvgLux(ByteBuffer.wrap(chunk2).order(java.nio.ByteOrder.LITTLE_ENDIAN).getShort());
+        offset += chunk2.length;
+
+        // Average temp
+        System.arraycopy(data, offset, chunk2, 0, chunk2.length);
+        res.setAvgTemp(ByteBuffer.wrap(chunk2).order(java.nio.ByteOrder.LITTLE_ENDIAN).getShort());
+        offset += chunk2.length;
+
+        // VectorX
+        System.arraycopy(data, offset, chunk2, 0, chunk2.length);
+        res.setVectorX(ByteBuffer.wrap(chunk2).order(java.nio.ByteOrder.LITTLE_ENDIAN).getShort());
+        offset += chunk2.length;
+
+        // VectorY
+        System.arraycopy(data, offset, chunk2, 0, chunk2.length);
+        res.setVectorY(ByteBuffer.wrap(chunk2).order(java.nio.ByteOrder.LITTLE_ENDIAN).getShort());
+        offset += chunk2.length;
+
+        // VectorZ
+        System.arraycopy(data, offset, chunk2, 0, chunk2.length);
+        res.setVectorZ(ByteBuffer.wrap(chunk2).order(java.nio.ByteOrder.LITTLE_ENDIAN).getShort());
+
+        return res;
+    }
 
     public RawdataEntity(){    }
 
