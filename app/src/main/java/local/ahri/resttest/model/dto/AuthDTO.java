@@ -1,4 +1,4 @@
-package local.ahri.resttest.dto;
+package local.ahri.resttest.model.dto;
 
 import java.io.Serializable;
 
