@@ -37,7 +37,7 @@ dependencies {
     implementation 'io.reactivex.rxjava3:rxandroid:3.0.0'
     implementation "io.reactivex.rxjava3:rxjava:3.0.1"
     implementation 'com.squareup.retrofit2:retrofit:2.8.1'
-    implementation 'com.clj.fastble:FastBleLib:2.3.4'
+    implementation "com.polidea.rxandroidble2:rxandroidble:1.11.1"
     implementation 'com.squareup.retrofit2:converter-gson:2.8.0'
     implementation "com.github.akarnokd:rxjava3-retrofit-adapter:3.0.0"
     api 'com.google.dagger:dagger:2.27'

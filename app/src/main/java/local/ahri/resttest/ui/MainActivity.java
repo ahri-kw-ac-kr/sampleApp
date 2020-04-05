@@ -4,15 +4,10 @@ package local.ahri.resttest.ui;
 import android.bluetooth.BluetoothGatt;
 import android.os.Bundle;
 
-import com.clj.fastble.BleManager;
-import com.clj.fastble.callback.BleGattCallback;
-import com.clj.fastble.callback.BleReadCallback;
-import com.clj.fastble.callback.BleScanCallback;
-import com.clj.fastble.data.BleDevice;
-import com.clj.fastble.exception.BleException;
-import com.clj.fastble.scan.BleScanRuleConfig;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
+import com.polidea.rxandroidble2.RxBleClient;
+import com.polidea.rxandroidble2.RxBleDevice;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -26,7 +21,9 @@ import android.widget.TextView;
 import org.w3c.dom.Text;
 
 import java.util.List;
+import java.util.UUID;
 
+import io.reactivex.disposables.Disposable;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import local.ahri.resttest.R;
@@ -43,9 +40,9 @@ import retrofit2.Response;
 
 
 public class MainActivity extends AppCompatActivity {
-    final private String SYNC_SERVICE_UUID = "0000fffa-0000-1000-8000-00805f9b34fb";
-    final private String SYNC_CONTROL_CHAR_UUID = "0000FFFA-0000-1000-8000-00805f9b34fb";
-    final private String SYNC_DATA_CHAR_UUID = "0000FFFB-0000-1000-8000-00805f9b34fb";
+    final private UUID SYNC_SERVICE_UUID = UUID.fromString("0000FFFA-0000-1000-8000-00805f9b34fb");
+    final private UUID SYNC_CONTROL_CHAR_UUID = UUID.fromString("0000FFFA-0000-1000-8000-00805f9b34fb");
+    final private UUID SYNC_DATA_CHAR_UUID = UUID.fromString("0000FFFB-0000-1000-8000-00805f9b34fb");
 
     private RestfulAPIService restfulAPIService;
     private ActivityMainBinding activityMainBinding;
@@ -72,9 +69,17 @@ public class MainActivity extends AppCompatActivity {
         textView.setText(result.get(0).getFullname());
     }
 
+    private void setText(byte[] data) {
+        TextView textView = findViewById(R.id.mytext);
+        RawdataDTO rawdataDTO = RawdataDTO.ParseBytearray(data);
+        Log.d("과연과연"," "+ rawdataDTO.getAvgLux());
+        textView.setText(rawdataDTO.getAvgLux());
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        RxBleClient rxBleClient = RxBleClient.create(getApplicationContext());
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -96,18 +101,12 @@ public class MainActivity extends AppCompatActivity {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(RestfulAPI::setToken, Throwable::printStackTrace);
 
-        /*restfulAPI.GetUsers(new Callback <List<UserDTO>>(){
-            @Override
-            public void onResponse(Call <List<UserDTO>> call, Response<List<UserDTO>> response){
-                //List<UserDTO> result = response.body();
-                Log.d("과연과연"," "+response.toString());
-                //textView.setText(result);
-            }
-            @Override
-            public void onFailure(Call<List<UserDTO>> call, Throwable t){
-                textView.setText("Nope!!");
-            }
-        });*/
+        String macAddress = "AA:BB:CC:DD:EE:FF";
+        RxBleDevice device = rxBleClient.getBleDevice(macAddress);
+        Disposable disposable = device.establishConnection(false) // <-- autoConnect flag
+                .flatMapSingle(rxBleConnection -> rxBleConnection.readCharacteristic(SYNC_SERVICE_UUID))
+                .subscribe(this::setText, Throwable::printStackTrace);
+        disposable.dispose();
 
     }
 }
