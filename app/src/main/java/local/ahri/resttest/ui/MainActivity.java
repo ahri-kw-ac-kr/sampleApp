@@ -92,7 +92,6 @@ public class MainActivity extends AppCompatActivity {
         user.setPassword("wowo");
 
         restfulAPIService.postAuth(user)
-                .onErrorComplete()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(RestfulAPI::setToken, Throwable::printStackTrace);
