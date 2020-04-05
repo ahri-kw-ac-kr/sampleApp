@@ -1,5 +1,6 @@
 package local.ahri.resttest;
 
+
 import android.bluetooth.BluetoothGatt;
 import android.os.Bundle;
 
@@ -27,8 +28,14 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
+import java.util.HashMap;
+import java.util.List;
+
 import local.ahri.resttest.dto.MyTestDTO;
-import local.ahri.resttest.dto.RawdataEntity;
+import local.ahri.resttest.dto.PageDTO;
+import local.ahri.resttest.dto.RawdataDTO;
+import local.ahri.resttest.dto.UserDTO;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -52,16 +59,67 @@ public class MainActivity extends AppCompatActivity {
 
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
+            final TextView textView = findViewById(R.id.mytext);
+
             @Override
             public void onClick(View view) {
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
+
+                RestfulAPI restfulAPI = RestfulAPI.getInstance();
+                Log.d("이 에이피아이는 어떤 에이피아이인가", restfulAPI.service.toString()+" 토큰은?? "+restfulAPI.token);
+                restfulAPI.GetUsers(new Callback <PageDTO<UserDTO>>(){
+                    @Override
+                    public void onResponse(Call <PageDTO<UserDTO>> call, Response<PageDTO<UserDTO>> response){
+                        List<UserDTO> result = response.body().getContent();
+                        Log.d("과연과연"," "+response.toString());
+                        textView.setText(result.get(0).getFullname());
+                    }
+                    @Override
+                    public void onFailure(Call<PageDTO<UserDTO>> call, Throwable t){
+                        textView.setText("Nope!!");
+                    }
+                });
+                //restfulAPI.PatchUser(1,);
+
             }
         });
 
-        final TextView textView = findViewById(R.id.mytext);
+        //final TextView textView = findViewById(R.id.mytext);
 
-        Retrofit retrofit = new Retrofit.Builder()
+        //////////////////////////////////////////////
+
+
+        RestfulAPI restfulAPI = RestfulAPI.getInstance();
+
+        /*HashMap<String,Object> user = new HashMap<>();
+        user.put("username","wawa");
+        user.put("fullname","wiwi");
+        user.put("password","wowo");*/
+        //UserDTO user = new UserDTO(5,"wawa","wiwi",'l',null,null,"wowo",null,null);
+        UserDTO user = new UserDTO();
+        user.setUsername("wawa");
+        user.setFullname("wiwi");
+        user.setPassword("wowo");
+
+        restfulAPI.PostAuth(user);
+
+        /*restfulAPI.GetUsers(new Callback <List<UserDTO>>(){
+            @Override
+            public void onResponse(Call <List<UserDTO>> call, Response<List<UserDTO>> response){
+                //List<UserDTO> result = response.body();
+                Log.d("과연과연"," "+response.toString());
+                //textView.setText(result);
+            }
+            @Override
+            public void onFailure(Call<List<UserDTO>> call, Throwable t){
+                textView.setText("Nope!!");
+            }
+        });*/
+
+
+
+        /*Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("https://dakapo.wiki/json/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
@@ -76,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<MyTestDTO> call, Throwable t) {
             }
-        });
+        });*/
 
         BleManager instance = BleManager.getInstance();
         instance.init(getApplication());
@@ -152,8 +210,8 @@ public class MainActivity extends AppCompatActivity {
                 new BleReadCallback() {
                     @Override
                     public void onReadSuccess(byte[] data) {
-                        RawdataEntity rawdataEntity = RawdataEntity.ParseBytearray(data);
-                        Log.println(Log.DEBUG, "average temp", String.format("%d", rawdataEntity.getAvgTemp()));
+                        RawdataDTO rawdataDTO = RawdataDTO.ParseBytearray(data);
+                        Log.println(Log.DEBUG, "average temp", String.format("%d", rawdataDTO.getAvgTemp()));
                     }
 
                     @Override
@@ -163,7 +221,7 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    @Override
+    /*@Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
@@ -183,5 +241,5 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
-    }
+    }*/
 }

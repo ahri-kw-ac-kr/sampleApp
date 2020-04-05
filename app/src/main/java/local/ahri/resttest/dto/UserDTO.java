@@ -7,7 +7,7 @@ import java.util.List;
  * Created by leegi on 2020-03-31.
  */
 
-public class UserEntity implements Serializable {
+public class UserDTO implements Serializable {
 
     /*private class SmallUserEntity{
         private Long id;
@@ -28,11 +28,11 @@ public class UserEntity implements Serializable {
     private String phone;
     private String password;
     private String newpassword;
-    private List<UserEntity> friend;
+    private List<UserDTO> friend;
 
-    public UserEntity(){    }
+    public UserDTO(){    }
 
-    public UserEntity(Long id, String username, String fullname, char sex, String birth, String phone, String password, String newpassword, List<UserEntity> freind){
+    public UserDTO(Long id, String username, String fullname, char sex, String birth, String phone, String password, String newpassword, List<UserDTO> freind){
         this.id = id;
         this.username = username;
         this.fullname = fullname;
@@ -68,6 +68,6 @@ public class UserEntity implements Serializable {
     public String getNewpassword() { return newpassword; }
     public void setNewpassword(String newpassword){ this.newpassword= newpassword; }
 
-    public List<UserEntity> getFriend() { return friend; }
+    public List<UserDTO> getFriend() { return friend; }
     public void setFriend(){ this.friend = friend;}
 }

@@ -3,15 +3,12 @@ package local.ahri.resttest.dto;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.Date;
-import java.util.List;
-
-import local.ahri.resttest.dto.UserEntity;
 
 /**
  * Created by leegi on 2020-03-31.
  */
 
-public class RawdataEntity implements Serializable {
+public class RawdataDTO implements Serializable {
 
     private Long id;
     private Date createdAt;
@@ -24,7 +21,7 @@ public class RawdataEntity implements Serializable {
     private short vectorX;
     private short vectorY;
     private short vectorZ;
-    private UserEntity user;
+    private UserDTO user;
 
     /*
     24 byte length
@@ -39,8 +36,8 @@ public class RawdataEntity implements Serializable {
     [][]      - vectorY
     [][]      - vectorZ
      */
-    public static RawdataEntity ParseBytearray(byte[] data) {
-        RawdataEntity res = new RawdataEntity();
+    public static RawdataDTO ParseBytearray(byte[] data) {
+        RawdataDTO res = new RawdataDTO();
         int offset = 0;
         byte[] chunk4 = new byte[4];
         byte[] chunk2 = new byte[2];
@@ -92,9 +89,10 @@ public class RawdataEntity implements Serializable {
         return res;
     }
 
-    public RawdataEntity(){    }
+    public RawdataDTO(){    }
 
-    public RawdataEntity(Long id, Date createdAt, int startTick, int endTick, int totalLux, short steps, short avgLux, short avgTemp, short vectorX, short vectorY, short vectorZ, UserEntity user){
+
+    public RawdataDTO(Long id, Date createdAt, int startTick, int endTick, int totalLux, short steps, short avgLux, short avgTemp, short vectorX, short vectorY, short vectorZ, UserDTO user){
         this.id = id;
         this.createdAt = createdAt;
         this.startTick = startTick;
@@ -142,6 +140,6 @@ public class RawdataEntity implements Serializable {
     public short getVectorZ() { return vectorZ; }
     public void setVectorZ(short vectorZ){ this.vectorZ= vectorZ; }
 
-    public UserEntity getUser(){ return user;}
-    public void setUser(UserEntity user){ this.user = user; }
+    public UserDTO getUser(){ return user;}
+    public void setUser(UserDTO user){ this.user = user; }
 }

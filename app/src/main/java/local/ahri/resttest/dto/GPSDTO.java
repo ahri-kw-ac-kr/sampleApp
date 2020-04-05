@@ -2,24 +2,22 @@ package local.ahri.resttest.dto;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
 
-import local.ahri.resttest.dto.UserEntity;
 /**
  * Created by leegi on 2020-03-31.
  */
 
-public class GPSEntity implements Serializable {
+public class GPSDTO implements Serializable {
 
     private Long id;
     private Date createdAt;
     private String lat;
     private String lon;
-    private UserEntity user;
+    private UserDTO user;
 
-    public GPSEntity(){    }
+    public GPSDTO(){    }
 
-    public GPSEntity(Long id, Date createdAt, String lat, String lon, UserEntity user){
+    public GPSDTO(Long id, Date createdAt, String lat, String lon, UserDTO user){
         this.id = id;
         this.createdAt = createdAt;
         this.lat = lat;
@@ -39,6 +37,6 @@ public class GPSEntity implements Serializable {
     public String getLon(){ return lon;}
     public void setLon(String lon){ this.lon = lon; }
 
-    public UserEntity getUser(){ return user;}
-    public void setUser(UserEntity user){ this.user = user; }
+    public UserDTO getUser(){ return user;}
+    public void setUser(UserDTO user){ this.user = user; }
 }
