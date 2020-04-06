@@ -20,6 +20,7 @@ import android.view.View;
 import android.widget.TextView;
 
 
+import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.UUID;
 
@@ -48,6 +49,8 @@ public class MainActivity extends AppCompatActivity {
     private final UUID GENERAL_SERVICE_UUID = UUID.fromString("0000fffe-0000-1000-8000-00805f9b34fb");
     private final UUID SYS_CMD_CHAR_UUID = UUID.fromString("0000ffff-0000-1000-8000-00805f9b34fb");
     final UUID CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
+
+    private ByteArrayOutputStream syncDataStream;
 
     private static final int NOTIFICATION_ID = 999;
 
@@ -108,6 +111,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         activityMainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
         activityMainBinding.setActivity(this);
+        syncDataStream = new ByteArrayOutputStream();
 
         /*HashMap<String,Object> user = new HashMap<>();
         user.put("username","wawa");
@@ -148,12 +152,21 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    @SuppressLint("CheckResult")
     private void readFromBle() {
         device.establishConnection(false)
             .flatMapSingle(rxBleConnection -> rxBleConnection.readCharacteristic(SYNC_DATA_CHAR_UUID))
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
-                    data -> { Log.i("값", data.toString()); },
-                    Throwable::printStackTrace)
+                    bytes -> {
+                        int len = bytes[0];
+                        syncDataStream.write(bytes, 1, len);
+                        byte[] stream = syncDataStream.toByteArray();
+                        byte[] data = new byte[24 * 6 + 10];
+                        System.arraycopy(stream, stream.length - data.length, data, 0, data.length);
+                        RawdataDTO rawdataDTO = RawdataDTO.ParseBytearray(data);
+                        Log.i("값", String.format("AvgLux: %d", rawdataDTO.getAvgLux()));
+                    },
+                    Throwable::printStackTrace);
     }
 }
