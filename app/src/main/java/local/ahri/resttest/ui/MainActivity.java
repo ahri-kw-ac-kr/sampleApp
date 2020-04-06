@@ -2,6 +2,7 @@ package local.ahri.resttest.ui;
 
 
 import android.annotation.SuppressLint;
+import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.os.Bundle;
 
@@ -46,10 +47,24 @@ public class MainActivity extends AppCompatActivity {
 
     private final UUID GENERAL_SERVICE_UUID = UUID.fromString("0000fffe-0000-1000-8000-00805f9b34fb");
     private final UUID SYS_CMD_CHAR_UUID = UUID.fromString("0000ffff-0000-1000-8000-00805f9b34fb");
+    final UUID CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
+
+    private static final int NOTIFICATION_ID = 999;
+
+    private static final byte SYNC_CONTROL_START = 0x01;
+    private static final byte SYNC_CONTROL_PREPARE_NEXT = 0x02;
+    private static final byte SYNC_CONTROL_DONE = 0x03;
+
+    private static final byte SYNC_NOTI_READY = 0x11;
+    private static final byte SYNC_NOTI_NEXT_READY = 0x12;
+    private static final byte SYNC_NOTI_DONE = 0x13;
+    private static final byte SYNC_NOTI_ERROR = (byte)0xFF;
 
     private static final byte SYS_CMD_SET_RTC = (byte)0x06;
 
     private static final byte SYS_CMD_GET_UUID = (byte)0x0B;
+
+    private RxBleDevice device;
 
     private RestfulAPIService restfulAPIService;
     private ActivityMainBinding activityMainBinding;
@@ -110,34 +125,35 @@ public class MainActivity extends AppCompatActivity {
                 .subscribe(RestfulAPI::setToken, Throwable::printStackTrace);
 
         String macAddress = "AA:BB:CC:DD:EE:FF";
-        RxBleDevice device = rxBleClient.getBleDevice(macAddress);
+        device = rxBleClient.getBleDevice(macAddress);
 
         // characteristic uuid 확인
         Observable<RxBleConnection> observable = device.establishConnection(false); // <-- autoConnect flag
+
         observable
-            .flatMapSingle(RxBleConnection::discoverServices)
-            .flatMapSingle(rxBleDeviceServices -> rxBleDeviceServices.getCharacteristic(characteristicUuid))
+            .flatMap(rxBleConnection -> rxBleConnection.setupNotification(SYNC_CONTROL_CHAR_UUID))
+            .doOnNext(notificationObservable -> {
+                // Notification has been set up
+            })
+            .flatMap(notificationObservable -> notificationObservable)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
-                    characteristic -> {
-                            TextView textView = findViewById(R.id.mytext);
-                            textView.append(characteristic.toString() + "\n");
-                    },
-                    Throwable::printStackTrace
+                data -> {
+                    if(data[0]!=SYNC_NOTI_DONE) {
+                        readFromBle();
+                    }
+                },
+                Throwable::printStackTrace
             );
 
-        // 버전 가져오기
-        observable
-            .flatMapSingle(rxBleConnection -> rxBleConnection.readCharacteristic(BATTERY_CHAR_UUID))
+    }
+
+    private void readFromBle() {
+        device.establishConnection(false)
+            .flatMapSingle(rxBleConnection -> rxBleConnection.readCharacteristic(SYNC_DATA_CHAR_UUID))
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
-                    data -> {
-                        Log.i("배터리", "battery: " + data[0] + "%, version: ");
-                    },
-                    Throwable::printStackTrace
-            );;
-
-
-
+                    data -> { Log.i("값", data.toString()); },
+                    Throwable::printStackTrace)
     }
 }
