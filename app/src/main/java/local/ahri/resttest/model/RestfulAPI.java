@@ -2,13 +2,13 @@ package local.ahri.resttest.model;
 
 import java.io.IOException;
 
-import hu.akarnokd.rxjava3.retrofit.RxJava3CallAdapterFactory;
 import local.ahri.resttest.model.dto.AuthDTO;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RestfulAPI {
@@ -23,7 +23,7 @@ public class RestfulAPI {
             Retrofit retrofit = new Retrofit.Builder()
                     .baseUrl(url)
                     .addConverterFactory(GsonConverterFactory.create())
-                    .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
+                    .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                     .build();
             restfulAPIService = retrofit.create(RestfulAPIService.class);
         }
@@ -46,7 +46,7 @@ public class RestfulAPI {
                 .client(client)
                 .baseUrl(url)
                 .addConverterFactory(GsonConverterFactory.create())
-                .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build();
         restfulAPIService = retrofit.create(RestfulAPIService.class);
     }

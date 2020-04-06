@@ -3,8 +3,7 @@ package local.ahri.resttest.model;
 import java.util.HashMap;
 import java.util.List;
 
-import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.core.Single;
+import io.reactivex.Single;
 import local.ahri.resttest.model.dto.AuthDTO;
 import local.ahri.resttest.model.dto.GPSDTO;
 import local.ahri.resttest.model.dto.PageDTO;

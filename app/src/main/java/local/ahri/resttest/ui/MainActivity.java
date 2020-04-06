@@ -1,13 +1,14 @@
 package local.ahri.resttest.ui;
 
 
-import android.bluetooth.BluetoothGatt;
+import android.annotation.SuppressLint;
+import android.bluetooth.BluetoothGattService;
 import android.os.Bundle;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
 import com.polidea.rxandroidble2.RxBleClient;
+import com.polidea.rxandroidble2.RxBleConnection;
 import com.polidea.rxandroidble2.RxBleDevice;
+import com.polidea.rxandroidble2.RxBleDeviceServices;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -18,14 +19,12 @@ import android.view.View;
 import android.widget.TextView;
 
 
-import org.w3c.dom.Text;
-
 import java.util.List;
 import java.util.UUID;
 
-import io.reactivex.disposables.Disposable;
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 import local.ahri.resttest.R;
 import local.ahri.resttest.databinding.ActivityMainBinding;
 import local.ahri.resttest.model.RestfulAPI;
@@ -34,15 +33,23 @@ import local.ahri.resttest.model.dto.PageDTO;
 import local.ahri.resttest.model.dto.RawdataDTO;
 import local.ahri.resttest.model.dto.UserDTO;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-
 
 public class MainActivity extends AppCompatActivity {
+    private UUID characteristicUuid;
     final private UUID SYNC_SERVICE_UUID = UUID.fromString("0000FFFA-0000-1000-8000-00805f9b34fb");
     final private UUID SYNC_CONTROL_CHAR_UUID = UUID.fromString("0000FFFA-0000-1000-8000-00805f9b34fb");
     final private UUID SYNC_DATA_CHAR_UUID = UUID.fromString("0000FFFB-0000-1000-8000-00805f9b34fb");
+    private UUID BATTERY_SERVICE_UUID = UUID.fromString("0000180f-0000-1000-8000-00805f9b34fb");
+    private UUID  BATTERY_CHAR_UUID = UUID.fromString("00002a19-0000-1000-8000-00805f9b34fb");
+    private final UUID DEVICE_INFORMATION_SERVICE_UUID = UUID.fromString("0000180a-0000-1000-8000-00805f9b34fb");
+    private final UUID SW_REVISION_CHAR_UUID = UUID.fromString("00002a28-0000-1000-8000-00805f9b34fb");
+
+    private final UUID GENERAL_SERVICE_UUID = UUID.fromString("0000fffe-0000-1000-8000-00805f9b34fb");
+    private final UUID SYS_CMD_CHAR_UUID = UUID.fromString("0000ffff-0000-1000-8000-00805f9b34fb");
+
+    private static final byte SYS_CMD_SET_RTC = (byte)0x06;
+
+    private static final byte SYS_CMD_GET_UUID = (byte)0x0B;
 
     private RestfulAPIService restfulAPIService;
     private ActivityMainBinding activityMainBinding;
@@ -76,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
         textView.setText(rawdataDTO.getAvgLux());
     }
 
+    @SuppressLint("CheckResult")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -103,10 +111,33 @@ public class MainActivity extends AppCompatActivity {
 
         String macAddress = "AA:BB:CC:DD:EE:FF";
         RxBleDevice device = rxBleClient.getBleDevice(macAddress);
-        Disposable disposable = device.establishConnection(false) // <-- autoConnect flag
-                .flatMapSingle(rxBleConnection -> rxBleConnection.readCharacteristic(SYNC_SERVICE_UUID))
-                .subscribe(this::setText, Throwable::printStackTrace);
-        disposable.dispose();
+
+        // characteristic uuid 확인
+        Observable<RxBleConnection> observable = device.establishConnection(false); // <-- autoConnect flag
+        observable
+            .flatMapSingle(RxBleConnection::discoverServices)
+            .flatMapSingle(rxBleDeviceServices -> rxBleDeviceServices.getCharacteristic(characteristicUuid))
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(
+                    characteristic -> {
+                            TextView textView = findViewById(R.id.mytext);
+                            textView.append(characteristic.toString() + "\n");
+                    },
+                    Throwable::printStackTrace
+            );
+
+        // 버전 가져오기
+        observable
+            .flatMapSingle(rxBleConnection -> rxBleConnection.readCharacteristic(BATTERY_CHAR_UUID))
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(
+                    data -> {
+                        Log.i("배터리", "battery: " + data[0] + "%, version: ");
+                    },
+                    Throwable::printStackTrace
+            );;
+
+
 
     }
 }
