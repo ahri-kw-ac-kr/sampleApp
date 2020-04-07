@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
         RestfulAPIService restfulAPIService = RestfulAPI.getInstance();
         Log.d("이 에이피아이는 어떤 에이피아이인가", restfulAPIService.toString() + " 토큰은?? " + RestfulAPI.token);
 
-        restfulAPIService.getUsers()
+        restfulAPIService.getAllUser()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(this::printUsers, Throwable::printStackTrace);

@@ -1,5 +1,7 @@
 package local.ahri.resttest.model;
 
+import android.os.UserManager;
+
 import java.util.HashMap;
 import java.util.List;
 
@@ -11,7 +13,7 @@ import local.ahri.resttest.model.dto.RawdataDTO;
 import local.ahri.resttest.model.dto.UserDTO;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
-import retrofit2.http.FieldMap;
+import retrofit2.http.Body;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
 import retrofit2.http.PATCH;
@@ -23,17 +25,15 @@ public interface RestfulAPIService {
     /** POST
      *  BaseURL/register
      *  회원가입 **/
-    @FormUrlEncoded
+    //@FormUrlEncoded
     @POST("register")
-    Single<UserDTO> postRegister(@FieldMap HashMap<String, Object> user);
+    Single<UserDTO> postRegister(@Body UserDTO user);
 
     /** GET
      *  BaseURL/authenticate
      *  권한인증 **/
     //@FormUrlEncoded
     @POST("authenticate")
-    //Single<AuthDTO> getAuth(@Body UserDTO user);
-    //Single<AuthDTO> postAuth(@FieldMap HashMap<String,Object> user);
     Single<AuthDTO> postAuth(@Body UserDTO user);
 
     /******************************  User  ************************************/
@@ -41,7 +41,7 @@ public interface RestfulAPIService {
      *  BaseURL/user
      *  모든 유저 정보 조회 **/
     @GET("user")
-    Single<PageDTO<UserDTO>> getUsers();
+    Single<PageDTO<UserDTO>> getAllUser();
 
     /** GET
      *  BaseURL/user/1
@@ -53,33 +53,34 @@ public interface RestfulAPIService {
      *  BaseURL/user/1/rawdata/?page=0&created_at_lt=00&created_at_gt=00
      *  1번 유저의 어느 시간대 rawdata 조회 **/
     @GET("user/{id}/rawdata")
-    Single<PageDTO<RawdataDTO>> getRawdataById(@Path("id")Long id, @Query("created_at_lt")String created_at_lt, @Query("created_at_gt")String created_at_gt);
+    Single<PageDTO<RawdataDTO>> getRawdataById(@Path("id")Long id, @Query("page")String page, @Query("created_at_lt")String created_at_lt, @Query("created_at_gt")String created_at_gt);
 
     /** GET
      *  BaseURL/user/1/gps
      *  1번 유저의 GPS data 조회 **/
     @GET("user/{id}/gps")
-    Single<PageDTO<GPSDTO>> getGPSById(@Path("id")Long id);
+    Single<PageDTO<GPSDTO>> getGPSById(@Path("id")Long id, @Query("page")String page);
 
     /** POST
      *  BaseURL/user
      *  user post **/
+    //@FormUrlEncoded
     @POST("user")
     Single<UserDTO> putUser(@Body UserDTO user);
 
     /** Patch
      *  BaseURL/user/{id}
      *  user patch **/
-    @FormUrlEncoded
+    //@FormUrlEncoded
     @PATCH("user/{id}")
-    Single<UserDTO> patchUser(@Path("id")Long id, @FieldMap HashMap<String, Object> user);
+    Single<UserDTO> patchUser(@Path("id")Long id, @Body UserDTO user);
 
     /** Patch
      *  BaseURL/user
      *  users patch **/
-    @FormUrlEncoded
+    //@FormUrlEncoded
     @PATCH("user")
-    Single<List<UserDTO>> patchUsers(@FieldMap List<HashMap<String, Object>> user);
+    Single<List<UserDTO>> patchAllUser(@Body List<UserDTO> user);
 
     /** Delete
      *  BaseURL/user/{id}
@@ -87,13 +88,26 @@ public interface RestfulAPIService {
     @DELETE("user/{id}")
     Single<UserDTO> deleteUser(@Path("id")Long id);
 
+    /** Patch
+     *  BaseURL/user/forget
+     *  비밀번호 찾기위해 username 입력 후 인증메일 발송 **/
+    //@FormUrlEncoded
+    @PATCH("user/forget")
+    void forget(@Query("username")String username);
+
+    /** Patch
+     *  BaseURL/user/initpassword
+     *  인증메일 번호가 확인되면 새로운 비밀번호 설정 **/
+    //@FormUrlEncoded
+    @PATCH("user/initpassword")
+    Single<UserDTO> initPassword(@Query("username")String username, @Query("number")String number, @Query("password")String password);
 
     /******************************  GPS  ************************************/
     /** GET
      *  BaseURL/gps
      *  모든 gps 정보 조회 **/
     @GET("gps")
-    Single<PageDTO<GPSDTO>> getGPSs();
+    Single<PageDTO<GPSDTO>> getAllGPS();
 
     /** GET
      *  BaseURL/gps/1
@@ -104,22 +118,23 @@ public interface RestfulAPIService {
     /** POST
      *  BaseURL/gps
      *  gps post **/
+    //@FormUrlEncoded
     @POST("gps")
     Single<GPSDTO> putGPS(@Body GPSDTO gps);
 
     /** Patch
      *  BaseURL/gps/{id}
      *  gps patch **/
-    @FormUrlEncoded
+    //@FormUrlEncoded
     @PATCH("gps/{id}")
-    Single<GPSDTO> patchGPS(@Path("id")Long id, @FieldMap HashMap<String, Object> gps);
+    Single<GPSDTO> patchGPS(@Path("id")Long id, @Body GPSDTO gps);
 
     /** Patch
      *  BaseURL/gps
      *  GPSs patch **/
-    @FormUrlEncoded
+    //@FormUrlEncoded
     @PATCH("gps")
-    Single<List<GPSDTO>> patchGPSs(@FieldMap List<HashMap<String, Object>> gps);
+    Single<List<GPSDTO>> patchAllGPS(@Body List<GPSDTO> gps);
 
     /** Delete
      *  BaseURL/gps/{id}
@@ -133,7 +148,7 @@ public interface RestfulAPIService {
      *  BaseURL/rawdata
      *  모든 rawdata 정보 조회 **/
     @GET("rawdata")
-    Single<PageDTO<RawdataDTO>> getRawdatas();
+    Single<PageDTO<RawdataDTO>> getAllRawdata();
 
     /** GET
      *  BaseURL/rawdata/1
@@ -144,22 +159,23 @@ public interface RestfulAPIService {
     /** POST
      *  BaseURL/rawdata
      *  rawdata post **/
+    //@FormUrlEncoded
     @POST("rawdata")
     Single<RawdataDTO> putRawdata(@Body RawdataDTO rawdata);
 
     /** Patch
      *  BaseURL/rawdata/{id}
      *  gps patch **/
-    @FormUrlEncoded
+    //@FormUrlEncoded
     @PATCH("rawdata/{id}")
-    Single<RawdataDTO> patchRawdata(@Path("id")Long id, @FieldMap HashMap<String, Object> rawdata);
+    Single<RawdataDTO> patchRawdata(@Path("id")Long id, @Body RawdataDTO rawdata);
 
     /** Patch
      *  BaseURL/rawdata
      *  Rawdatas patch **/
-    @FormUrlEncoded
+    //@FormUrlEncoded
     @PATCH("rawdata")
-    Single<List<RawdataDTO>> patchRawdatas(@FieldMap List<HashMap<String, Object>> rawdata);
+    Single<List<RawdataDTO>> patchAllRawdata(@Body List<RawdataDTO> rawdata);
 
     /** Delete
      *  BaseURL/rawdata/{id}
