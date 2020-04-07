@@ -17,10 +17,6 @@ import com.clj.fastble.callback.BleReadCallback;
 import com.clj.fastble.callback.BleWriteCallback;
 import com.clj.fastble.data.BleDevice;
 import com.clj.fastble.exception.BleException;
-import com.polidea.rxandroidble2.RxBleClient;
-import com.polidea.rxandroidble2.RxBleConnection;
-import com.polidea.rxandroidble2.RxBleDevice;
-import com.polidea.rxandroidble2.RxBleDeviceServices;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -38,6 +34,7 @@ import org.reactivestreams.Subscription;
 
 import java.io.ByteArrayOutputStream;
 import java.lang.reflect.Array;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -92,13 +89,11 @@ public class MainActivity extends AppCompatActivity {
 
     private static final byte SYS_CMD_GET_UUID = (byte) 0x0B;
 
-    private RxBleDevice device;
     private BleDevice bleDevice;
     private BleManager bManager;
 
     private RestfulAPIService restfulAPIService;
     private ActivityMainBinding activityMainBinding;
-    private RxBleConnection conn;
 
     public MainActivity() {
         this.restfulAPIService = RestfulAPI.getInstance();
@@ -133,7 +128,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        RxBleClient rxBleClient = RxBleClient.create(getApplicationContext());
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -194,6 +188,15 @@ public class MainActivity extends AppCompatActivity {
         // characteristic uuid 확인
         ///////////////////////////////////////////// 이걸해줘야 notification이 제대로 온다
         BluetoothGatt gatt = bManager.getBluetoothGatt(bleDevice);
+        try {
+            // BluetoothGatt gatt
+            final Method refresh = gatt.getClass().getMethod("refresh");
+            if (refresh != null) {
+                refresh.invoke(gatt);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         BluetoothGattCharacteristic syncControlChar = gatt.getService(SYNC_SERVICE_UUID).getCharacteristic(SYNC_CONTROL_CHAR_UUID);
         //SYNC_CONTROL Notify ON
         final UUID CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
