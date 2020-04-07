@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.databinding.DataBindingUtil;
 
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -26,6 +27,7 @@ import java.util.UUID;
 
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import local.ahri.resttest.R;
 import local.ahri.resttest.databinding.ActivityMainBinding;
@@ -42,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
     final private UUID SYNC_CONTROL_CHAR_UUID = UUID.fromString("0000FFFA-0000-1000-8000-00805f9b34fb");
     final private UUID SYNC_DATA_CHAR_UUID = UUID.fromString("0000FFFB-0000-1000-8000-00805f9b34fb");
     private UUID BATTERY_SERVICE_UUID = UUID.fromString("0000180f-0000-1000-8000-00805f9b34fb");
-    private UUID  BATTERY_CHAR_UUID = UUID.fromString("00002a19-0000-1000-8000-00805f9b34fb");
+    private UUID BATTERY_CHAR_UUID = UUID.fromString("00002a19-0000-1000-8000-00805f9b34fb");
     private final UUID DEVICE_INFORMATION_SERVICE_UUID = UUID.fromString("0000180a-0000-1000-8000-00805f9b34fb");
     private final UUID SW_REVISION_CHAR_UUID = UUID.fromString("00002a28-0000-1000-8000-00805f9b34fb");
 
@@ -61,11 +63,11 @@ public class MainActivity extends AppCompatActivity {
     private static final byte SYNC_NOTI_READY = 0x11;
     private static final byte SYNC_NOTI_NEXT_READY = 0x12;
     private static final byte SYNC_NOTI_DONE = 0x13;
-    private static final byte SYNC_NOTI_ERROR = (byte)0xFF;
+    private static final byte SYNC_NOTI_ERROR = (byte) 0xFF;
 
-    private static final byte SYS_CMD_SET_RTC = (byte)0x06;
+    private static final byte SYS_CMD_SET_RTC = (byte) 0x06;
 
-    private static final byte SYS_CMD_GET_UUID = (byte)0x0B;
+    private static final byte SYS_CMD_GET_UUID = (byte) 0x0B;
 
     private RxBleDevice device;
 
@@ -79,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
     public void onFabClick(View view) {
         TextView textView = findViewById(R.id.mytext);
         RestfulAPIService restfulAPIService = RestfulAPI.getInstance();
-        Log.d("이 에이피아이는 어떤 에이피아이인가", restfulAPIService.toString()+" 토큰은?? "+ RestfulAPI.token);
+        Log.d("이 에이피아이는 어떤 에이피아이인가", restfulAPIService.toString() + " 토큰은?? " + RestfulAPI.token);
 
         restfulAPIService.getUsers()
                 .subscribeOn(Schedulers.io())
@@ -90,14 +92,14 @@ public class MainActivity extends AppCompatActivity {
     private void printUsers(PageDTO<UserDTO> body) {
         TextView textView = findViewById(R.id.mytext);
         List<UserDTO> result = body.getContent();
-        Log.d("과연과연"," "+ body.toString());
+        Log.d("과연과연", " " + body.toString());
         textView.setText(result.get(0).getFullname());
     }
 
     private void setText(byte[] data) {
         TextView textView = findViewById(R.id.mytext);
         RawdataDTO rawdataDTO = RawdataDTO.ParseBytearray(data);
-        Log.d("과연과연"," "+ rawdataDTO.getAvgLux());
+        Log.d("과연과연", " " + rawdataDTO.getAvgLux());
         textView.setText(rawdataDTO.getAvgLux());
     }
 
@@ -128,45 +130,48 @@ public class MainActivity extends AppCompatActivity {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(RestfulAPI::setToken, Throwable::printStackTrace);
 
-        String macAddress = "AA:BB:CC:DD:EE:FF";
+        String macAddress = "D0:31:A1:4B:DC:34";
         device = rxBleClient.getBleDevice(macAddress);
-
         // characteristic uuid 확인
-        Observable<RxBleConnection> observable = device.establishConnection(false); // <-- autoConnect flag
-
+        Observable<RxBleConnection> observable = device.establishConnection(true); // <-- autoConnect flag
         observable
-            .flatMap(rxBleConnection -> rxBleConnection.setupNotification(SYNC_CONTROL_CHAR_UUID))
-            .doOnNext(notificationObservable -> {
-                // Notification has been set up
-            })
-            .flatMap(notificationObservable -> notificationObservable)
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(
-                data -> {
-                    if(data[0]!=SYNC_NOTI_DONE) {
-                        readFromBle();
-                    }
-                },
-                Throwable::printStackTrace
-            );
-
+                .flatMap(rxBleConnection ->
+                        rxBleConnection.setupNotification(SYNC_CONTROL_CHAR_UUID)
+                                .flatMap(notificationObservable -> notificationObservable.mergeWith(
+                                        rxBleConnection.writeCharacteristic(SYNC_CONTROL_CHAR_UUID, new byte[]{SYNC_CONTROL_START})
+                                ))
+                )
+                .doOnNext(notificationObservable -> {
+                })
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        data -> {
+                            if(data[0]!=SYNC_NOTI_DONE) {
+                                readFromBle();
+                            }
+                            else {
+                                Log.i("why", "why");
+                            }
+                        },
+                        Throwable::printStackTrace
+                );
     }
-
     @SuppressLint("CheckResult")
     private void readFromBle() {
         device.establishConnection(false)
-            .flatMapSingle(rxBleConnection -> rxBleConnection.readCharacteristic(SYNC_DATA_CHAR_UUID))
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(
-                    bytes -> {
-                        int len = bytes[0];
-                        syncDataStream.write(bytes, 1, len);
-                        byte[] stream = syncDataStream.toByteArray();
-                        byte[] data = new byte[24 * 6 + 10];
-                        System.arraycopy(stream, stream.length - data.length, data, 0, data.length);
-                        RawdataDTO rawdataDTO = RawdataDTO.ParseBytearray(data);
-                        Log.i("값", String.format("AvgLux: %d", rawdataDTO.getAvgLux()));
-                    },
-                    Throwable::printStackTrace);
+                .flatMapSingle(rxBleConnection -> rxBleConnection.readCharacteristic(SYNC_DATA_CHAR_UUID))
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        bytes -> {
+                            int len = bytes[0];
+                            byte[] data = new byte[24];
+                            System.arraycopy(bytes, 1, data,0,24);
+                            RawdataDTO rawdataDTO = RawdataDTO.ParseBytearray(data);
+                            Log.i("값", String.format("AvgLux: %d", rawdataDTO.getAvgLux()));
+                        },
+                        Throwable::printStackTrace);
     }
+
+
 }
+
