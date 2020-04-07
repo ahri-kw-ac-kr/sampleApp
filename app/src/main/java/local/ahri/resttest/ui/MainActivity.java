@@ -11,6 +11,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 
 import com.clj.fastble.BleManager;
+import com.clj.fastble.callback.BleGattCallback;
 import com.clj.fastble.callback.BleNotifyCallback;
 import com.clj.fastble.callback.BleReadCallback;
 import com.clj.fastble.callback.BleWriteCallback;
@@ -92,6 +93,8 @@ public class MainActivity extends AppCompatActivity {
     private static final byte SYS_CMD_GET_UUID = (byte) 0x0B;
 
     private RxBleDevice device;
+    private BleDevice bleDevice;
+    private BleManager bManager;
 
     private RestfulAPIService restfulAPIService;
     private ActivityMainBinding activityMainBinding;
@@ -155,10 +158,36 @@ public class MainActivity extends AppCompatActivity {
 
         String macAddress = "AA:BB:CC:DD:EE:FF";
 
-        BleManager bManager = BleManager.getInstance();
+        bManager = BleManager.getInstance();
 
-        BluetoothDevice bluetoothDevice = bManager.getBluetoothAdapter().getRemoteDevice(macAddress);
-        BleDevice bleDevice = new BleDevice(bluetoothDevice,0,null,0);
+        bManager.connect(macAddress, new BleGattCallback() {
+            @Override
+            public void onStartConnect() {
+
+            }
+
+            @Override
+            public void onConnectFail(BleDevice _bleDevice, BleException exception) {
+                bleDevice = _bleDevice;
+                a();
+            }
+
+            @Override
+            public void onConnectSuccess(BleDevice _bleDevice, BluetoothGatt gatt, int status) {
+                bleDevice = _bleDevice;
+                a();
+            }
+
+            @Override
+            public void onDisConnected(boolean isActiveDisConnected, BleDevice bleDevice, BluetoothGatt gatt, int status) {
+
+            }
+        });
+
+
+    }
+
+    private void a() {
         syncDataStream = new ByteArrayOutputStream();
         int count = 0;
 
