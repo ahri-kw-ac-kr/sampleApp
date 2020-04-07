@@ -2,10 +2,20 @@ package local.ahri.resttest.ui;
 
 
 import android.annotation.SuppressLint;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
+import android.os.AsyncTask;
 import android.os.Bundle;
 
+import com.clj.fastble.BleManager;
+import com.clj.fastble.callback.BleNotifyCallback;
+import com.clj.fastble.callback.BleReadCallback;
+import com.clj.fastble.callback.BleWriteCallback;
+import com.clj.fastble.data.BleDevice;
+import com.clj.fastble.exception.BleException;
 import com.polidea.rxandroidble2.RxBleClient;
 import com.polidea.rxandroidble2.RxBleConnection;
 import com.polidea.rxandroidble2.RxBleDevice;
@@ -13,20 +23,34 @@ import com.polidea.rxandroidble2.RxBleDeviceServices;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.NotificationCompat;
 import androidx.databinding.DataBindingUtil;
 
+import android.os.Handler;
 import android.util.Log;
+import android.util.Pair;
 import android.view.View;
 import android.widget.TextView;
 
 
+import org.reactivestreams.Subscription;
+
 import java.io.ByteArrayOutputStream;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import io.reactivex.Completable;
+import io.reactivex.CompletableSource;
+import io.reactivex.Flowable;
 import io.reactivex.Observable;
+import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Action;
 import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subjects.PublishSubject;
 import local.ahri.resttest.R;
 import local.ahri.resttest.databinding.ActivityMainBinding;
 import local.ahri.resttest.model.RestfulAPI;
@@ -71,6 +95,7 @@ public class MainActivity extends AppCompatActivity {
 
     private RestfulAPIService restfulAPIService;
     private ActivityMainBinding activityMainBinding;
+    private RxBleConnection conn;
 
     public MainActivity() {
         this.restfulAPIService = RestfulAPI.getInstance();
@@ -129,44 +154,73 @@ public class MainActivity extends AppCompatActivity {
                 .subscribe(RestfulAPI::setToken, Throwable::printStackTrace);
 
         String macAddress = "AA:BB:CC:DD:EE:FF";
-        device = rxBleClient.getBleDevice(macAddress);
+
+        BleManager bManager = BleManager.getInstance();
+
+        BluetoothDevice bluetoothDevice = bManager.getBluetoothAdapter().getRemoteDevice(macAddress);
+        BleDevice bleDevice = new BleDevice(bluetoothDevice,0,null,0);
+        syncDataStream = new ByteArrayOutputStream();
+        int count = 0;
 
         // characteristic uuid 확인
-        Observable<RxBleConnection> observable = device.establishConnection(false); // <-- autoConnect flag
+        ///////////////////////////////////////////// 이걸해줘야 notification이 제대로 온다
+        BluetoothGatt gatt = bManager.getBluetoothGatt(bleDevice);
+        BluetoothGattCharacteristic syncControlChar = gatt.getService(SYNC_SERVICE_UUID).getCharacteristic(SYNC_CONTROL_CHAR_UUID);
+        //SYNC_CONTROL Notify ON
+        final UUID CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
+        BluetoothGattDescriptor descriptor = syncControlChar.getDescriptor(CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID);
+        descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+        gatt.writeDescriptor(descriptor);
+        /////////////////////////////////////////////
 
-        observable
-            .flatMap(rxBleConnection -> rxBleConnection.setupNotification(SYNC_CONTROL_CHAR_UUID))
-            .doOnNext(notificationObservable -> {
-                // Notification has been set up
-            })
-            .flatMap(notificationObservable -> notificationObservable)
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(
-                data -> {
-                    if(data[0]!=SYNC_NOTI_DONE) {
-                        readFromBle();
-                    }
-                },
-                Throwable::printStackTrace
-            );
+        bManager.notify(bleDevice, SYNC_SERVICE_UUID.toString(), SYNC_CONTROL_CHAR_UUID.toString(), new BleNotifyCallback() {
+            //Sync Notify ON Success
+            @Override
+            public void onNotifySuccess() {
+                Log.i("GET_DEVICE_DATA", "notify SYNC_CONTROL Success");
+                //노티 켜지면 씽크시작 값 쓰기
+                bManager.write(bleDevice, SYNC_SERVICE_UUID.toString(), SYNC_CONTROL_CHAR_UUID.toString(), new byte[]{SYNC_CONTROL_START}, syncControlWriteCallback);
+            }
 
+            @Override
+            public void onNotifyFailure(BleException exception) {
+                Log.i("GET_DEVICE_DATA", "notify SYNC_CONTROL Fail");
+            }
+            @Override
+            public void onCharacteristicChanged(byte[] data) {
+                Log.i("notify SYNC_CONTROL", data.toString());
+                if(data[0]!=SYNC_NOTI_DONE) {
+                    bManager.read(bleDevice, SYNC_SERVICE_UUID.toString(), SYNC_DATA_CHAR_UUID.toString(), syncControlReadCallback);
+                }
+            }
+        });
     }
 
-    @SuppressLint("CheckResult")
-    private void readFromBle() {
-        device.establishConnection(false)
-            .flatMapSingle(rxBleConnection -> rxBleConnection.readCharacteristic(SYNC_DATA_CHAR_UUID))
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(
-                    bytes -> {
-                        int len = bytes[0];
-                        syncDataStream.write(bytes, 1, len);
-                        byte[] stream = syncDataStream.toByteArray();
-                        byte[] data = new byte[24 * 6 + 10];
-                        System.arraycopy(stream, stream.length - data.length, data, 0, data.length);
-                        RawdataDTO rawdataDTO = RawdataDTO.ParseBytearray(data);
-                        Log.i("값", String.format("AvgLux: %d", rawdataDTO.getAvgLux()));
-                    },
-                    Throwable::printStackTrace);
-    }
+    BleReadCallback syncControlReadCallback = new BleReadCallback() {
+        @Override
+        public void onReadSuccess(byte[] bytes) {
+            int len = bytes[0];
+            byte[] data = new byte[24];
+            System.arraycopy(bytes, 1, data,0,24);
+            RawdataDTO rawdataDTO = RawdataDTO.ParseBytearray(data);
+            Log.i("값", String.format("AvgLux: %d", rawdataDTO.getAvgLux()));
+        }
+        @Override
+        public void onReadFailure(BleException exception) {
+            Log.d("fail", "fail");
+        }
+    };
+
+    BleWriteCallback syncControlWriteCallback = new BleWriteCallback() {
+        @Override
+        public void onWriteSuccess(int current, int total, byte[] justWrite) {
+            Log.i("GET_DEVICE_DATA",  "write success, current: " + current
+                    + " total: " + total
+                    + " justWrite: " + justWrite.toString());
+        }
+        @Override
+        public void onWriteFailure(BleException exception) {
+            Log.i("GET_DEVICE_DATA", "Fail\n"+exception.toString());
+        }
+    };
 }
