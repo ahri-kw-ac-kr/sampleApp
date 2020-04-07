@@ -66,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
     final private UUID SYNC_CONTROL_CHAR_UUID = UUID.fromString("0000FFFA-0000-1000-8000-00805f9b34fb");
     final private UUID SYNC_DATA_CHAR_UUID = UUID.fromString("0000FFFB-0000-1000-8000-00805f9b34fb");
     private UUID BATTERY_SERVICE_UUID = UUID.fromString("0000180f-0000-1000-8000-00805f9b34fb");
-    private UUID  BATTERY_CHAR_UUID = UUID.fromString("00002a19-0000-1000-8000-00805f9b34fb");
+    private UUID BATTERY_CHAR_UUID = UUID.fromString("00002a19-0000-1000-8000-00805f9b34fb");
     private final UUID DEVICE_INFORMATION_SERVICE_UUID = UUID.fromString("0000180a-0000-1000-8000-00805f9b34fb");
     private final UUID SW_REVISION_CHAR_UUID = UUID.fromString("00002a28-0000-1000-8000-00805f9b34fb");
 
@@ -85,11 +85,11 @@ public class MainActivity extends AppCompatActivity {
     private static final byte SYNC_NOTI_READY = 0x11;
     private static final byte SYNC_NOTI_NEXT_READY = 0x12;
     private static final byte SYNC_NOTI_DONE = 0x13;
-    private static final byte SYNC_NOTI_ERROR = (byte)0xFF;
+    private static final byte SYNC_NOTI_ERROR = (byte) 0xFF;
 
-    private static final byte SYS_CMD_SET_RTC = (byte)0x06;
+    private static final byte SYS_CMD_SET_RTC = (byte) 0x06;
 
-    private static final byte SYS_CMD_GET_UUID = (byte)0x0B;
+    private static final byte SYS_CMD_GET_UUID = (byte) 0x0B;
 
     private RxBleDevice device;
 
@@ -104,9 +104,9 @@ public class MainActivity extends AppCompatActivity {
     public void onFabClick(View view) {
         TextView textView = findViewById(R.id.mytext);
         RestfulAPIService restfulAPIService = RestfulAPI.getInstance();
-        Log.d("이 에이피아이는 어떤 에이피아이인가", restfulAPIService.toString()+" 토큰은?? "+ RestfulAPI.token);
+        Log.d("이 에이피아이는 어떤 에이피아이인가", restfulAPIService.toString() + " 토큰은?? " + RestfulAPI.token);
 
-        restfulAPIService.getUsers()
+        restfulAPIService.getAllUser()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(this::printUsers, Throwable::printStackTrace);
@@ -115,14 +115,14 @@ public class MainActivity extends AppCompatActivity {
     private void printUsers(PageDTO<UserDTO> body) {
         TextView textView = findViewById(R.id.mytext);
         List<UserDTO> result = body.getContent();
-        Log.d("과연과연"," "+ body.toString());
+        Log.d("과연과연", " " + body.toString());
         textView.setText(result.get(0).getFullname());
     }
 
     private void setText(byte[] data) {
         TextView textView = findViewById(R.id.mytext);
         RawdataDTO rawdataDTO = RawdataDTO.ParseBytearray(data);
-        Log.d("과연과연"," "+ rawdataDTO.getAvgLux());
+        Log.d("과연과연", " " + rawdataDTO.getAvgLux());
         textView.setText(rawdataDTO.getAvgLux());
     }
 
@@ -224,3 +224,4 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 }
+
