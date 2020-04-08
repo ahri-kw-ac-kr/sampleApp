@@ -98,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         sleepDocService.getRawdata()
-                .subscribe(rawdataDTO -> Log.i("Main", String.format("%d", rawdataDTO.getAvgLux())));
+                .subscribe(rawdataDTO -> Log.i("Main", String.format("%d", rawdataDTO.getAvgLux())), Throwable::printStackTrace);
     }
 }
 
