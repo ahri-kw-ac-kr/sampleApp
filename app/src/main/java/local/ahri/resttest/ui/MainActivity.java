@@ -2,12 +2,9 @@ package local.ahri.resttest.ui;
 
 
 import android.annotation.SuppressLint;
-import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
-import android.bluetooth.BluetoothGattService;
-import android.os.AsyncTask;
 import android.os.Bundle;
 
 import com.clj.fastble.BleManager;
@@ -21,39 +18,25 @@ import com.clj.fastble.utils.BleLog;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.app.NotificationCompat;
 import androidx.databinding.DataBindingUtil;
 
-import android.os.Handler;
 import android.util.Log;
-import android.util.Pair;
 import android.view.View;
 import android.widget.TextView;
 
 
-import org.reactivestreams.Subscription;
-
 import java.io.ByteArrayOutputStream;
-import java.lang.reflect.Array;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import io.reactivex.Completable;
-import io.reactivex.CompletableSource;
-import io.reactivex.Flowable;
-import io.reactivex.Observable;
-import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Action;
 import io.reactivex.schedulers.Schedulers;
-import io.reactivex.subjects.PublishSubject;
 import local.ahri.resttest.R;
 import local.ahri.resttest.databinding.ActivityMainBinding;
 import local.ahri.resttest.model.RestfulAPI;
 import local.ahri.resttest.model.RestfulAPIService;
+import local.ahri.resttest.model.SleepDocService;
 import local.ahri.resttest.model.dto.BleInfoDTO;
 import local.ahri.resttest.model.dto.PageDTO;
 import local.ahri.resttest.model.dto.RawdataDTO;
@@ -61,41 +44,8 @@ import local.ahri.resttest.model.dto.UserDTO;
 
 
 public class MainActivity extends AppCompatActivity {
-    private UUID characteristicUuid;
-    final private UUID SYNC_SERVICE_UUID = UUID.fromString("0000FFFA-0000-1000-8000-00805f9b34fb");
-    final private UUID SYNC_CONTROL_CHAR_UUID = UUID.fromString("0000FFFA-0000-1000-8000-00805f9b34fb");
-    final private UUID SYNC_DATA_CHAR_UUID = UUID.fromString("0000FFFB-0000-1000-8000-00805f9b34fb");
-    private UUID BATTERY_SERVICE_UUID = UUID.fromString("0000180f-0000-1000-8000-00805f9b34fb");
-    private UUID BATTERY_CHAR_UUID = UUID.fromString("00002a19-0000-1000-8000-00805f9b34fb");
-    private final UUID DEVICE_INFORMATION_SERVICE_UUID = UUID.fromString("0000180a-0000-1000-8000-00805f9b34fb");
-    private final UUID SW_REVISION_CHAR_UUID = UUID.fromString("00002a28-0000-1000-8000-00805f9b34fb");
-
-    private final UUID GENERAL_SERVICE_UUID = UUID.fromString("0000fffe-0000-1000-8000-00805f9b34fb");
-    private final UUID SYS_CMD_CHAR_UUID = UUID.fromString("0000ffff-0000-1000-8000-00805f9b34fb");
-    final UUID CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
-
-    private ByteArrayOutputStream syncDataStream;
-
-    private static final int NOTIFICATION_ID = 999;
-
-    private static final byte SYNC_CONTROL_START = 0x01;
-    private static final byte SYNC_CONTROL_PREPARE_NEXT = 0x02;
-    private static final byte SYNC_CONTROL_DONE = 0x03;
-
-    private static final byte SYNC_NOTI_READY = 0x11;
-    private static final byte SYNC_NOTI_NEXT_READY = 0x12;
-    private static final byte SYNC_NOTI_DONE = 0x13;
-    private static final byte SYNC_NOTI_ERROR = (byte) 0xFF;
-
-    private static final byte SYS_CMD_SET_RTC = (byte) 0x06;
-
-    private static final byte SYS_CMD_GET_UUID = (byte) 0x0B;
-    private int totalSyncBytes = 0;
-
-    private BleDevice bleDevice;
-    private BleManager bManager;
-
     private RestfulAPIService restfulAPIService;
+    private SleepDocService sleepDocService;
     private ActivityMainBinding activityMainBinding;
 
     public MainActivity() {
@@ -136,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         activityMainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
         activityMainBinding.setActivity(this);
-        syncDataStream = new ByteArrayOutputStream();
+
 
         /*HashMap<String,Object> user = new HashMap<>();
         user.put("username","wawa");
@@ -153,150 +103,16 @@ public class MainActivity extends AppCompatActivity {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(RestfulAPI::setToken, Throwable::printStackTrace);
 
+        BleManager.getInstance().init(getApplication());
         String macAddress = "AA:BB:CC:DD:EE:FF";
-
-        bManager = BleManager.getInstance();
-
-        bManager.connect(macAddress, new BleGattCallback() {
-            @Override
-            public void onStartConnect() {
-
-            }
-
-            @Override
-            public void onConnectFail(BleDevice _bleDevice, BleException exception) {
-                bleDevice = _bleDevice;
-                a();
-            }
-
-            @Override
-            public void onConnectSuccess(BleDevice _bleDevice, BluetoothGatt gatt, int status) {
-                bleDevice = _bleDevice;
-                a();
-            }
-
-            @Override
-            public void onDisConnected(boolean isActiveDisConnected, BleDevice bleDevice, BluetoothGatt gatt, int status) {
-
-            }
-        });
-
-
-    }
-
-    private synchronized void refreshDeviceCache(BluetoothGatt bluetoothGatt) {
+        SleepDocService.setMacAddress(macAddress);
         try {
-            final Method refresh = BluetoothGatt.class.getMethod("refresh");
-            if (refresh != null && bluetoothGatt != null) {
-                boolean success = (Boolean) refresh.invoke(bluetoothGatt);
-                BleLog.i("refreshDeviceCache, is success:  " + success);
-            }
+            sleepDocService = SleepDocService.getInstance();
         } catch (Exception e) {
-            BleLog.i("exception occur while refreshing device: " + e.getMessage());
             e.printStackTrace();
         }
+        sleepDocService.getRawdata()
+                .subscribe(rawdataDTO -> Log.i("Main", String.format("%d", rawdataDTO.getAvgLux())));
     }
-
-    private void a() {
-        syncDataStream = new ByteArrayOutputStream();
-        int count = 0;
-
-        // characteristic uuid 확인
-        ///////////////////////////////////////////// 이걸해줘야 notification이 제대로 온다
-        BluetoothGatt gatt = bManager.getBluetoothGatt(bleDevice);
-        refreshDeviceCache(gatt);
-        BluetoothGattCharacteristic syncControlChar = gatt.getService(SYNC_SERVICE_UUID).getCharacteristic(SYNC_CONTROL_CHAR_UUID);
-        //SYNC_CONTROL Notify ON
-        final UUID CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
-        BluetoothGattDescriptor descriptor = syncControlChar.getDescriptor(CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID);
-        descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-        gatt.writeDescriptor(descriptor);
-        /////////////////////////////////////////////
-
-        bManager.notify(bleDevice, SYNC_SERVICE_UUID.toString(), SYNC_CONTROL_CHAR_UUID.toString(), new BleNotifyCallback() {
-            //Sync Notify ON Success
-            @Override
-            public void onNotifySuccess() {
-                Log.i("GET_DEVICE_DATA", "notify SYNC_CONTROL Success");
-                //노티 켜지면 씽크시작 값 쓰기
-                bManager.write(bleDevice, SYNC_SERVICE_UUID.toString(), SYNC_CONTROL_CHAR_UUID.toString(), new byte[]{SYNC_CONTROL_START}, syncControlWriteCallback);
-            }
-
-            @Override
-            public void onNotifyFailure(BleException exception) {
-                Log.i("GET_DEVICE_DATA", "notify SYNC_CONTROL Fail");
-            }
-            @Override
-            public void onCharacteristicChanged(byte[] data) {
-                Log.i("notify SYNC_CONTROL", data.toString());
-                if(data[0]!=SYNC_NOTI_DONE) {
-                    bManager.read(bleDevice, SYNC_SERVICE_UUID.toString(), SYNC_DATA_CHAR_UUID.toString(), syncControlReadCallback);
-                }
-            }
-        });
-    }
-
-    BleReadCallback syncControlReadCallback = new BleReadCallback() {
-        @Override
-        public void onReadSuccess(byte[] values) {
-            int extsize = 24 * 6 + 10;
-            int nestsize = 24;
-            int len = values[0];
-            syncDataStream.write(values, 1, len);
-            Log.i("GET_DEVICE_DATA", "readDataSize :"+syncDataStream.size() + "  SleepdocDataSize : "+ extsize);
-
-
-            if( syncDataStream.size() >= extsize ) {
-                BleInfoDTO extData;
-                byte[] stream = syncDataStream.toByteArray();
-                byte[] data = new byte[extsize];
-                System.arraycopy(stream, stream.length-data.length, data, 0, data.length);
-                extData = BleInfoDTO.ParseByteArray(data);
-
-                if(totalSyncBytes == 0){
-                    totalSyncBytes = extData.remainings * nestsize;
-                }
-                if( syncDataStream.size() % extsize == 0 ) {
-                    Log.d("받았나","sleepdoc_ext_interface_data_type 만큼 받음.");
-                    for( int i=0; i<6; i++) {
-                        RawdataDTO rawdataDTO = extData.rawdataDTOArray[i];
-                        Log.d("결과", String.format("sleepdoc_10_min_data_type \t%d\t\t%d\t\t%d",
-                                rawdataDTO.getStartTick(), rawdataDTO.getSteps(), rawdataDTO.getVectorX()) );
-                        Log.d("timezone", "device timezone: " + extData.time_zone);
-
-                    }
-
-                }
-            }
-            int progress = 100;
-            if(totalSyncBytes > 0){
-                progress = (int) (syncDataStream.size() * 100 / totalSyncBytes);
-            }
-            if(progress < 0)
-                progress = 0;
-            else if(progress > 100)
-                progress = 100;
-
-            //다음 패킷 요청하기
-            bManager.write(bleDevice, SYNC_SERVICE_UUID.toString(), SYNC_CONTROL_CHAR_UUID.toString(), new byte[]{SYNC_CONTROL_PREPARE_NEXT}, syncControlWriteCallback);
-        }
-        @Override
-        public void onReadFailure(BleException exception) {
-            Log.d("fail", "fail");
-        }
-    };
-
-    BleWriteCallback syncControlWriteCallback = new BleWriteCallback() {
-        @Override
-        public void onWriteSuccess(int current, int total, byte[] justWrite) {
-            Log.i("GET_DEVICE_DATA",  "write success, current: " + current
-                    + " total: " + total
-                    + " justWrite: " + justWrite.toString());
-        }
-        @Override
-        public void onWriteFailure(BleException exception) {
-            Log.i("GET_DEVICE_DATA", "Fail\n"+exception.toString());
-        }
-    };
 }
 
