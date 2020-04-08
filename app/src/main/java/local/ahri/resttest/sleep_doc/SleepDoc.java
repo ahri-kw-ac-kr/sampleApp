@@ -1,6 +1,5 @@
 package local.ahri.resttest.sleep_doc;
 
-import android.app.Application;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
@@ -13,22 +12,16 @@ import com.clj.fastble.callback.BleReadCallback;
 import com.clj.fastble.callback.BleWriteCallback;
 import com.clj.fastble.data.BleDevice;
 import com.clj.fastble.exception.BleException;
-import com.clj.fastble.utils.BleLog;
 
-import java.io.ByteArrayOutputStream;
 import java.lang.reflect.Method;
-import java.util.UUID;
 
 import io.reactivex.Observable;
-import local.ahri.resttest.model.dto.BleInfoDTO;
-import local.ahri.resttest.model.dto.RawdataDTO;
 import local.ahri.resttest.sleep_doc.command.Command;
 import local.ahri.resttest.sleep_doc.uuid.CharacteristicUUID;
 import local.ahri.resttest.sleep_doc.uuid.DescriptorUUID;
 import local.ahri.resttest.sleep_doc.uuid.ServiceUUID;
 
 public class SleepDoc {
-    private ByteArrayOutputStream syncDataStream;
     private BleManager bleManager;
     private String macAddress;
 
@@ -61,8 +54,11 @@ public class SleepDoc {
         });
     }
 
+    public void prepareNext() {
+        bleManager.write(bleDevice, ServiceUUID.SYNC.toString(), CharacteristicUUID.SYNC_CONTROL.toString(), new byte[]{Command.SYNC_CONTROL_PREPARE_NEXT}, logWriteCallback);
+    }
+
     public Observable<byte[]> getRawdata() {
-        syncDataStream = new ByteArrayOutputStream();
         BluetoothGatt gatt = bleManager.getBluetoothGatt(bleDevice);
         refreshDeviceCache(gatt);
         BluetoothGattCharacteristic syncControlChar = gatt.getService(ServiceUUID.SYNC).getCharacteristic(CharacteristicUUID.SYNC_CONTROL);
@@ -96,6 +92,9 @@ public class SleepDoc {
                         @Override
                         public void onReadSuccess(byte[] values) {
                             Log.i("SleepDoc", "Read from SleepDoc");
+                            if (values[0] == 0) {
+                                bleManager.write(bleDevice, ServiceUUID.SYNC.toString(), CharacteristicUUID.SYNC_CONTROL.toString(), new byte[]{Command.SYNC_CONTROL_DONE}, logWriteCallback);
+                            }
                             observer.onNext(values);
                         }
                         @Override

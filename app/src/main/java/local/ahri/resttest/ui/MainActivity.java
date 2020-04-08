@@ -2,19 +2,9 @@ package local.ahri.resttest.ui;
 
 
 import android.annotation.SuppressLint;
-import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattDescriptor;
 import android.os.Bundle;
 
 import com.clj.fastble.BleManager;
-import com.clj.fastble.callback.BleGattCallback;
-import com.clj.fastble.callback.BleNotifyCallback;
-import com.clj.fastble.callback.BleReadCallback;
-import com.clj.fastble.callback.BleWriteCallback;
-import com.clj.fastble.data.BleDevice;
-import com.clj.fastble.exception.BleException;
-import com.clj.fastble.utils.BleLog;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -25,10 +15,7 @@ import android.view.View;
 import android.widget.TextView;
 
 
-import java.io.ByteArrayOutputStream;
-import java.lang.reflect.Method;
 import java.util.List;
-import java.util.UUID;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
@@ -37,7 +24,6 @@ import local.ahri.resttest.databinding.ActivityMainBinding;
 import local.ahri.resttest.model.RestfulAPI;
 import local.ahri.resttest.model.RestfulAPIService;
 import local.ahri.resttest.model.SleepDocService;
-import local.ahri.resttest.model.dto.BleInfoDTO;
 import local.ahri.resttest.model.dto.PageDTO;
 import local.ahri.resttest.model.dto.RawdataDTO;
 import local.ahri.resttest.model.dto.UserDTO;
