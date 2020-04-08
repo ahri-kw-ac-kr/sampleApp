@@ -24,6 +24,7 @@ public class MainActivityViewModel extends ViewModel {
         return restfulAPIService.postAuth(user);
     }
 
+    /************************ User ***********************/
     public Single<PageDTO<UserDTO>> getAllUser() {
         return restfulAPIService.getAllUser();
     }
