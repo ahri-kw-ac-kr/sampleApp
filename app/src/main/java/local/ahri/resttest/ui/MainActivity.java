@@ -17,6 +17,7 @@ import com.clj.fastble.callback.BleReadCallback;
 import com.clj.fastble.callback.BleWriteCallback;
 import com.clj.fastble.data.BleDevice;
 import com.clj.fastble.exception.BleException;
+import com.clj.fastble.utils.BleLog;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -183,6 +184,19 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private synchronized void refreshDeviceCache(BluetoothGatt bluetoothGatt) {
+        try {
+            final Method refresh = BluetoothGatt.class.getMethod("refresh");
+            if (refresh != null && bluetoothGatt != null) {
+                boolean success = (Boolean) refresh.invoke(bluetoothGatt);
+                BleLog.i("refreshDeviceCache, is success:  " + success);
+            }
+        } catch (Exception e) {
+            BleLog.i("exception occur while refreshing device: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
     private void a() {
         syncDataStream = new ByteArrayOutputStream();
         int count = 0;
@@ -190,15 +204,7 @@ public class MainActivity extends AppCompatActivity {
         // characteristic uuid 확인
         ///////////////////////////////////////////// 이걸해줘야 notification이 제대로 온다
         BluetoothGatt gatt = bManager.getBluetoothGatt(bleDevice);
-        try {
-            // BluetoothGatt gatt
-            final Method refresh = gatt.getClass().getMethod("refresh");
-            if (refresh != null) {
-                refresh.invoke(gatt);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        refreshDeviceCache(gatt);
         BluetoothGattCharacteristic syncControlChar = gatt.getService(SYNC_SERVICE_UUID).getCharacteristic(SYNC_CONTROL_CHAR_UUID);
         //SYNC_CONTROL Notify ON
         final UUID CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
