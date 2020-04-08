@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel;
 import java.util.List;
 
 import io.reactivex.Single;
+import local.ahri.resttest.model.RestfulAPI;
 import local.ahri.resttest.model.RestfulAPIService;
 import local.ahri.resttest.model.dto.AuthDTO;
 import local.ahri.resttest.model.dto.GPSDTO;
@@ -15,6 +16,7 @@ import local.ahri.resttest.model.dto.UserDTO;
 public class MainActivityViewModel extends ViewModel {
 
     private RestfulAPIService restfulAPIService;
+    public MainActivityViewModel() { this.restfulAPIService = RestfulAPI.getInstance(); }
 
     public Single<UserDTO> postRegister(UserDTO user){
         return restfulAPIService.postRegister(user);
@@ -57,8 +59,8 @@ public class MainActivityViewModel extends ViewModel {
         return restfulAPIService.deleteUser(id);
     }
 
-    public void forget(String username){
-        //return restfulAPIService.forget(username);
+    public String forget(String username){
+        return restfulAPIService.forget(username);
     }
 
     public  Single<UserDTO> initPassword(String username, String number, String password){

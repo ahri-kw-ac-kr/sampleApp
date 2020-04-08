@@ -17,6 +17,8 @@ import android.widget.TextView;
 
 import java.util.List;
 
+import io.reactivex.Scheduler;
+import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 import local.ahri.resttest.R;
@@ -27,23 +29,19 @@ import local.ahri.resttest.model.SleepDocService;
 import local.ahri.resttest.model.dto.PageDTO;
 import local.ahri.resttest.model.dto.RawdataDTO;
 import local.ahri.resttest.model.dto.UserDTO;
+import local.ahri.resttest.viewmodel.MainActivityViewModel;
 
 
 public class MainActivity extends AppCompatActivity {
-    private RestfulAPIService restfulAPIService;
     private SleepDocService sleepDocService;
     private ActivityMainBinding activityMainBinding;
-
-    public MainActivity() {
-        this.restfulAPIService = RestfulAPI.getInstance();
-    }
+    private MainActivityViewModel viewModel = new MainActivityViewModel();
 
     public void onFabClick(View view) {
-        TextView textView = findViewById(R.id.mytext);
-        RestfulAPIService restfulAPIService = RestfulAPI.getInstance();
-        Log.d("이 에이피아이는 어떤 에이피아이인가", restfulAPIService.toString() + " 토큰은?? " + RestfulAPI.token);
+        MainActivityViewModel viewModel = new MainActivityViewModel();
+        Log.d("뷰모델", viewModel.toString() + " 토큰은?? " + RestfulAPI.token);
 
-        restfulAPIService.getAllUser()
+        viewModel.getAllUser()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(this::printUsers, Throwable::printStackTrace);
@@ -53,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
         TextView textView = findViewById(R.id.mytext);
         List<UserDTO> result = body.getContent();
         Log.d("과연과연", " " + body.toString());
-        textView.setText(result.get(0).getFullname());
+        textView.setText("Username: "+result.get(0).getUsername()+", Fullname: "+result.get(0).getFullname());
     }
 
     private void setText(byte[] data) {
@@ -73,24 +71,21 @@ public class MainActivity extends AppCompatActivity {
         activityMainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
         activityMainBinding.setActivity(this);
 
-
-        /*HashMap<String,Object> user = new HashMap<>();
-        user.put("username","wawa");
-        user.put("fullname","wiwi");
-        user.put("password","wowo");*/
-        //UserDTO user = new UserDTO(5,"wawa","wiwi",'l',null,null,"wowo",null,null);
         UserDTO user = new UserDTO();
         user.setUsername("wawa");
-        user.setFullname("wiwi");
+        //user.setFullname("wiwi");
         user.setPassword("wowo");
 
-        restfulAPIService.postAuth(user)
+        System.out.println(user);
+        viewModel.postAuth(user)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(RestfulAPI::setToken, Throwable::printStackTrace);
 
+
+
         BleManager.getInstance().init(getApplication());
-        String macAddress = "AA:BB:CC:DD:EE:FF";
+        String macAddress = "D0:31:A1:4B:DC:34";
         SleepDocService.setMacAddress(macAddress);
         try {
             sleepDocService = SleepDocService.getInstance();

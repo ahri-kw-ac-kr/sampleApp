@@ -14,6 +14,7 @@ import local.ahri.resttest.model.dto.UserDTO;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.Body;
+import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
 import retrofit2.http.PATCH;
@@ -91,16 +92,16 @@ public interface RestfulAPIService {
     /** Patch
      *  BaseURL/user/forget
      *  비밀번호 찾기위해 username 입력 후 인증메일 발송 **/
-    //@FormUrlEncoded
+    @FormUrlEncoded
     @PATCH("user/forget")
-    void forget(@Query("username")String username);
+    String forget(@Field("username") String username);
 
     /** Patch
      *  BaseURL/user/initpassword
      *  인증메일 번호가 확인되면 새로운 비밀번호 설정 **/
     //@FormUrlEncoded
     @PATCH("user/initpassword")
-    Single<UserDTO> initPassword(@Query("username")String username, @Query("number")String number, @Query("password")String password);
+    Single<UserDTO> initPassword(@Field("username") String username, @Field("number") String number, @Field("password") String password);
 
     /******************************  GPS  ************************************/
     /** GET
