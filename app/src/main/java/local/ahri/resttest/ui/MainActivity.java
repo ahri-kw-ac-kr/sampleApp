@@ -53,6 +53,7 @@ import local.ahri.resttest.R;
 import local.ahri.resttest.databinding.ActivityMainBinding;
 import local.ahri.resttest.model.RestfulAPI;
 import local.ahri.resttest.model.RestfulAPIService;
+import local.ahri.resttest.model.dto.BleInfoDTO;
 import local.ahri.resttest.model.dto.PageDTO;
 import local.ahri.resttest.model.dto.RawdataDTO;
 import local.ahri.resttest.model.dto.UserDTO;
@@ -88,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
     private static final byte SYS_CMD_SET_RTC = (byte) 0x06;
 
     private static final byte SYS_CMD_GET_UUID = (byte) 0x0B;
+    private int totalSyncBytes = 0;
 
     private BleDevice bleDevice;
     private BleManager bManager;
@@ -230,12 +232,47 @@ public class MainActivity extends AppCompatActivity {
 
     BleReadCallback syncControlReadCallback = new BleReadCallback() {
         @Override
-        public void onReadSuccess(byte[] bytes) {
-            int len = bytes[0];
-            byte[] data = new byte[24];
-            System.arraycopy(bytes, 1, data,0,24);
-            RawdataDTO rawdataDTO = RawdataDTO.ParseBytearray(data);
-            Log.i("값", String.format("AvgLux: %d", rawdataDTO.getAvgLux()));
+        public void onReadSuccess(byte[] values) {
+            int extsize = 24 * 6 + 10;
+            int nestsize = 24;
+            int len = values[0];
+            syncDataStream.write(values, 1, len);
+            Log.i("GET_DEVICE_DATA", "readDataSize :"+syncDataStream.size() + "  SleepdocDataSize : "+ extsize);
+
+
+            if( syncDataStream.size() >= extsize ) {
+                BleInfoDTO extData;
+                byte[] stream = syncDataStream.toByteArray();
+                byte[] data = new byte[extsize];
+                System.arraycopy(stream, stream.length-data.length, data, 0, data.length);
+                extData = BleInfoDTO.ParseByteArray(data);
+
+                if(totalSyncBytes == 0){
+                    totalSyncBytes = extData.remainings * nestsize;
+                }
+                if( syncDataStream.size() % extsize == 0 ) {
+                    Log.d("받았나","sleepdoc_ext_interface_data_type 만큼 받음.");
+                    for( int i=0; i<6; i++) {
+                        RawdataDTO rawdataDTO = extData.rawdataDTOArray[i];
+                        Log.d("결과", String.format("sleepdoc_10_min_data_type \t%d\t\t%d\t\t%d",
+                                rawdataDTO.getStartTick(), rawdataDTO.getSteps(), rawdataDTO.getVectorX()) );
+                        Log.d("timezone", "device timezone: " + extData.time_zone);
+
+                    }
+
+                }
+            }
+            int progress = 100;
+            if(totalSyncBytes > 0){
+                progress = (int) (syncDataStream.size() * 100 / totalSyncBytes);
+            }
+            if(progress < 0)
+                progress = 0;
+            else if(progress > 100)
+                progress = 100;
+
+            //다음 패킷 요청하기
+            bManager.write(bleDevice, SYNC_SERVICE_UUID.toString(), SYNC_CONTROL_CHAR_UUID.toString(), new byte[]{SYNC_CONTROL_PREPARE_NEXT}, syncControlWriteCallback);
         }
         @Override
         public void onReadFailure(BleException exception) {
