@@ -66,7 +66,7 @@ public interface RestfulAPIService {
      *  user post **/
     //@FormUrlEncoded
     @POST("user")
-    Single<UserDTO> putUser(@Body UserDTO user);
+    Single<UserDTO> postUser(@Body UserDTO user);
 
     /** Patch
      *  BaseURL/user/{id}
@@ -120,7 +120,7 @@ public interface RestfulAPIService {
      *  gps post **/
     //@FormUrlEncoded
     @POST("gps")
-    Single<GPSDTO> putGPS(@Body GPSDTO gps);
+    Single<GPSDTO> postGPS(@Body GPSDTO gps);
 
     /** Patch
      *  BaseURL/gps/{id}
@@ -161,7 +161,7 @@ public interface RestfulAPIService {
      *  rawdata post **/
     //@FormUrlEncoded
     @POST("rawdata")
-    Single<RawdataDTO> putRawdata(@Body RawdataDTO rawdata);
+    Single<RawdataDTO> postRawdata(@Body RawdataDTO rawdata);
 
     /** Patch
      *  BaseURL/rawdata/{id}
