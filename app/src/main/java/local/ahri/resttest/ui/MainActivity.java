@@ -86,6 +86,8 @@ public class MainActivity extends AppCompatActivity {
 
         viewModel.connectSleepDoc(macAddress)
                 .andThen(viewModel.getRawdataFromSleepDoc())
+                .observeOn(Schedulers.io())
+                .subscribeOn(AndroidSchedulers.mainThread())
                 .subscribe(rawdataDTO -> Log.i("MainActivity", String.format("%d", rawdataDTO.getAvgLux())), Throwable::printStackTrace);
     }
 }

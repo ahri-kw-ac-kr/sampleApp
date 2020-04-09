@@ -31,16 +31,14 @@ public class SleepDoc {
     private String macAddress;
     private BleDevice bleDevice;
     private BluetoothGatt gatt;
+    private boolean isConnected = false;
 
     public SleepDoc(String macAddress) {
         this.macAddress = macAddress;
         bleManager = BleManager.getInstance();
-        gatt = bleManager.getBluetoothGatt(bleDevice);
-        refreshDeviceCache(gatt);
     }
 
     public Completable connect() {
-        refreshDeviceCache(gatt);
         return Completable.create(observer -> bleManager.connect(macAddress, new BleGattCallback() {
             @Override
             public void onStartConnect() {
@@ -54,9 +52,11 @@ public class SleepDoc {
             }
 
             @Override
-            public void onConnectSuccess(BleDevice _bleDevice, BluetoothGatt gatt, int status) {
+            public void onConnectSuccess(BleDevice _bleDevice, BluetoothGatt _gatt, int status) {
                 Log.i("SleepDoc", "연결성공");
                 bleDevice = _bleDevice;
+                isConnected = true;
+                gatt = _gatt;
                 observer.onComplete();
             }
 
