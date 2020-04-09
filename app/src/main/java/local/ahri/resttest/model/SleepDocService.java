@@ -9,7 +9,7 @@ import local.ahri.resttest.sleep_doc.dto.RawdataDTO;
 import local.ahri.resttest.sleep_doc.SleepDoc;
 
 public class SleepDocService {
-    private static SleepDoc sleepDoc;
+    private SleepDoc sleepDoc;
     private static SleepDocService sleepDocService;
 
     public Observable<RawdataDTO> getRawdata() {

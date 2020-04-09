@@ -38,35 +38,39 @@ public class SleepDoc {
         bleManager = BleManager.getInstance();
     }
 
+    private SleepDoc() {}
+
     public Completable connect() {
-        Log.i("Sleepdoc", "connect start");
-        return Completable.create(observer -> bleManager.connect(macAddress, new BleGattCallback() {
-            @Override
-            public void onStartConnect() {
-                Log.i("SleepDoc", "연결시작");
-            }
+        return Completable.create(observer -> {
+            Log.i("Sleepdoc", "connect start");
+            bleManager.connect(macAddress, new BleGattCallback() {
+                @Override
+                public void onStartConnect() {
+                    Log.i("SleepDoc", "연결시작");
+                }
 
-            @Override
-            public void onConnectFail(BleDevice _bleDevice, BleException exception) {
-                Log.i("SleepDoc", "연결실패");
-                observer.onError(new Exception(String.format("Connect fail: %s", macAddress)));
-            }
+                @Override
+                public void onConnectFail(BleDevice _bleDevice, BleException exception) {
+                    Log.i("SleepDoc", "연결실패");
+                    observer.onError(new Exception(String.format("Connect fail: %s", macAddress)));
+                }
 
-            @Override
-            public void onConnectSuccess(BleDevice _bleDevice, BluetoothGatt _gatt, int status) {
-                Log.i("SleepDoc", "연결성공");
-                bleDevice = _bleDevice;
-                isConnected = true;
-                gatt = bleManager.getBluetoothGatt(bleDevice);
-                observer.onComplete();
-            }
+                @Override
+                public void onConnectSuccess(BleDevice _bleDevice, BluetoothGatt _gatt, int status) {
+                    Log.i("SleepDoc", "연결성공");
+                    bleDevice = _bleDevice;
+                    isConnected = true;
+                    gatt = bleManager.getBluetoothGatt(bleDevice);
+                    observer.onComplete();
+                }
 
-            @Override
-            public void onDisConnected(boolean isActiveDisConnected, BleDevice bleDevice, BluetoothGatt gatt, int status) {
-                Log.i("SleepDoc", "연결해제");
-                isConnected = false;
-            }
-        }));
+                @Override
+                public void onDisConnected(boolean isActiveDisConnected, BleDevice bleDevice, BluetoothGatt gatt, int status) {
+                    Log.i("SleepDoc", "연결해제");
+                    isConnected = false;
+                }
+            });
+        });
     }
 
     public Observable<RawdataDTO> getRawdata() {
