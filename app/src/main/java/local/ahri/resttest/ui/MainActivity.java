@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Completable;
+import io.reactivex.Observable;
 import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
@@ -46,18 +47,18 @@ public class MainActivity extends AppCompatActivity {
         Log.d("뷰모델", viewModel.toString() + " 토큰은?? " + RestfulAPI.token);
 
         viewModel.getAllUser()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(this::printUsers, Throwable::printStackTrace);
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(this::printUsers, Throwable::printStackTrace);
 
         viewModel.getRawdataFromSleepDoc()
-                .observeOn(Schedulers.io())
-                .subscribeOn(AndroidSchedulers.mainThread())
-                .subscribe(rawdataDTO -> {
-                    Log.i("MainActivity", "onSubscribe");
-                    TextView t = findViewById(R.id.mytext);
-                    t.setText(String.format("%d", rawdataDTO.getAvgLux()));
-                }, Throwable::printStackTrace);
+            .observeOn(Schedulers.io())
+            .subscribeOn(AndroidSchedulers.mainThread())
+            .subscribe(rawdataDTO -> {
+                Log.i("MainActivity", "onSubscribe");
+                TextView t = findViewById(R.id.mytext);
+                t.setText(String.format("%d", rawdataDTO.getAvgLux()));
+            }, Throwable::printStackTrace);
     }
 
     private void printUsers(PageDTO<UserDTO> body) {

@@ -93,7 +93,7 @@ public class SleepDoc {
                 @Override
                 public void onNotifyFailure(BleException exception) {
                     Log.i("SleepDoc", "notify SYNC_CONTROL Fail");
-                    observer.onError(new Exception(exception.getDescription()));
+//                    observer.onError(new Exception(exception.getDescription()));
                 }
                 @Override
                 public void onCharacteristicChanged(byte[] data) {
@@ -112,7 +112,7 @@ public class SleepDoc {
                                 SyncDataDTO syncDataDTO = SyncDataDTO.ParseByteArray(values);
                                 for (final RawdataDTO rawdataDTO : syncDataDTO.rawdataDTOArray) {
                                     Log.i("SleepDoc", "Sync data is parsed into rawdata");
-                                    Log.i("럭스값", Integer.toString(rawdataDTO.getAvgLux()));
+                                    Log.i("럭스값", Integer.toString(rawdataDTO.getAvgLux()));`
                                     observer.onNext(rawdataDTO);
                                 }
                             } catch (ZeroLengthException e) {
