@@ -1,4 +1,4 @@
-package local.ahri.resttest.model.dto;
+package local.ahri.resttest.sleep_doc.dto;
 
 import android.util.Log;
 

@@ -1,8 +1,10 @@
-package local.ahri.resttest.model.dto;
+package local.ahri.resttest.sleep_doc.dto;
 
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.Date;
+
+import local.ahri.resttest.model.dto.UserDTO;
 
 /**
  * Created by leegi on 2020-03-31.

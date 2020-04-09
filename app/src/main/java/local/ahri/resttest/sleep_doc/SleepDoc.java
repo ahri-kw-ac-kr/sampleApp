@@ -16,6 +16,10 @@ import com.clj.fastble.exception.BleException;
 import java.lang.reflect.Method;
 
 import io.reactivex.Observable;
+import local.ahri.resttest.exceptions.DataIsTooShortException;
+import local.ahri.resttest.exceptions.ZeroLengthException;
+import local.ahri.resttest.sleep_doc.dto.RawdataDTO;
+import local.ahri.resttest.sleep_doc.dto.SyncDataDTO;
 import local.ahri.resttest.sleep_doc.command.Command;
 import local.ahri.resttest.sleep_doc.uuid.CharacteristicUUID;
 import local.ahri.resttest.sleep_doc.uuid.DescriptorUUID;
@@ -58,7 +62,7 @@ public class SleepDoc {
         bleManager.write(bleDevice, ServiceUUID.SYNC.toString(), CharacteristicUUID.SYNC_CONTROL.toString(), new byte[]{Command.SYNC_CONTROL_PREPARE_NEXT}, logWriteCallback);
     }
 
-    public Observable<byte[]> getRawdata() {
+    public Observable<RawdataDTO> getRawdata() {
         BluetoothGatt gatt = bleManager.getBluetoothGatt(bleDevice);
         refreshDeviceCache(gatt);
         BluetoothGattCharacteristic syncControlChar = gatt.getService(ServiceUUID.SYNC).getCharacteristic(CharacteristicUUID.SYNC_CONTROL);
@@ -96,7 +100,19 @@ public class SleepDoc {
                                 // Sync done
                                 bleManager.write(bleDevice, ServiceUUID.SYNC.toString(), CharacteristicUUID.SYNC_CONTROL.toString(), new byte[]{Command.SYNC_CONTROL_DONE}, logWriteCallback);
                             } else {
-                                observer.onNext(values);
+                                try {
+                                    Log.i("SleepDoc", "Sync data is arrived");
+                                    SyncDataDTO syncDataDTO = SyncDataDTO.ParseByteArray(values);
+                                    for (final RawdataDTO rawdataDTO : syncDataDTO.rawdataDTOArray) {
+                                        Log.i("SleepDoc", "Sync data is parsed into rawdata");
+                                        observer.onNext(rawdataDTO);
+                                    }
+                                } catch (ZeroLengthException e) {
+                                    Log.i("SleepDoc", "Sync data has 0 length, Sync is done.");
+                                } catch (DataIsTooShortException e) {
+                                    Log.i("SleepDoc", "Request next data");
+                                    prepareNext();
+                                }
                             }
                         }
                         @Override

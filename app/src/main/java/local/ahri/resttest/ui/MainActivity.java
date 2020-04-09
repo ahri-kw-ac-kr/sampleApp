@@ -17,24 +17,19 @@ import android.widget.TextView;
 
 import java.util.List;
 
-import io.reactivex.Scheduler;
-import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 import local.ahri.resttest.R;
 import local.ahri.resttest.databinding.ActivityMainBinding;
-import local.ahri.resttest.exceptions.MacAddressIsNotProvidedException;
 import local.ahri.resttest.model.RestfulAPI;
-import local.ahri.resttest.model.RestfulAPIService;
-import local.ahri.resttest.model.SleepDocService;
 import local.ahri.resttest.model.dto.PageDTO;
-import local.ahri.resttest.model.dto.RawdataDTO;
+import local.ahri.resttest.sleep_doc.dto.RawdataDTO;
 import local.ahri.resttest.model.dto.UserDTO;
 import local.ahri.resttest.viewmodel.MainActivityViewModel;
 
 
 public class MainActivity extends AppCompatActivity {
-    private SleepDocService sleepDocService;
+
     private ActivityMainBinding activityMainBinding;
     private MainActivityViewModel viewModel = new MainActivityViewModel();
 
@@ -87,14 +82,17 @@ public class MainActivity extends AppCompatActivity {
 
         BleManager.getInstance().init(getApplication());
         String macAddress = "D0:31:A1:4B:DC:34";
-        SleepDocService.setMacAddress(macAddress);
-        try {
-            sleepDocService = SleepDocService.getInstance();
-        } catch (MacAddressIsNotProvidedException e) {
-            e.printStackTrace();
-        }
-        sleepDocService.getRawdata()
-                .subscribe(rawdataDTO -> Log.i("Main", String.format("%d", rawdataDTO.getAvgLux())), Throwable::printStackTrace);
+
+        viewModel.scanBle()
+            .subscribe(bleDeviceDTO -> {
+                Log.i("MainActivity", String.format("find: %s", bleDeviceDTO.getMacAddress()));
+            });
+
+        viewModel.connectSleepDoc(macAddress)
+            .doOnComplete(() ->
+                viewModel.getRawdata()
+                    .subscribe(rawdataDTO -> Log.i("MainActivity", String.format("%d", rawdataDTO.getAvgLux())), Throwable::printStackTrace)
+        );
     }
 }
 

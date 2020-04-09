@@ -1,19 +1,15 @@
 package local.ahri.resttest.model;
 
-import android.os.UserManager;
-
-import java.util.HashMap;
 import java.util.List;
 
 import io.reactivex.Single;
 import local.ahri.resttest.model.dto.AuthDTO;
 import local.ahri.resttest.model.dto.GPSDTO;
 import local.ahri.resttest.model.dto.PageDTO;
-import local.ahri.resttest.model.dto.RawdataDTO;
+import local.ahri.resttest.sleep_doc.dto.RawdataDTO;
 import local.ahri.resttest.model.dto.UserDTO;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
-import retrofit2.http.Body;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;

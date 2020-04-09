@@ -4,19 +4,43 @@ import androidx.lifecycle.ViewModel;
 
 import java.util.List;
 
+import io.reactivex.Completable;
+import io.reactivex.Observable;
 import io.reactivex.Single;
+import local.ahri.resttest.model.BleService;
 import local.ahri.resttest.model.RestfulAPI;
 import local.ahri.resttest.model.RestfulAPIService;
+import local.ahri.resttest.model.SleepDocService;
 import local.ahri.resttest.model.dto.AuthDTO;
+import local.ahri.resttest.model.dto.BleDeviceDTO;
 import local.ahri.resttest.model.dto.GPSDTO;
 import local.ahri.resttest.model.dto.PageDTO;
-import local.ahri.resttest.model.dto.RawdataDTO;
+import local.ahri.resttest.sleep_doc.dto.RawdataDTO;
 import local.ahri.resttest.model.dto.UserDTO;
 
 public class MainActivityViewModel extends ViewModel {
 
     private RestfulAPIService restfulAPIService;
-    public MainActivityViewModel() { this.restfulAPIService = RestfulAPI.getInstance(); }
+    private BleService bleService;
+    private SleepDocService sleepDocService;
+
+    public MainActivityViewModel() {
+        this.restfulAPIService = RestfulAPI.getInstance();
+        this.bleService = BleService.getInstance();
+        this.sleepDocService = SleepDocService.getInstance();
+    }
+
+    public Completable connectSleepDoc(String mac) {
+        return sleepDocService.connect(mac);
+    }
+
+    public Observable<RawdataDTO> getRawdata() {
+        return sleepDocService.getRawdata();
+    }
+
+    public Observable<BleDeviceDTO> scanBle() {
+        return bleService.scanBle();
+    }
 
     public Single<UserDTO> postRegister(UserDTO user){
         return restfulAPIService.postRegister(user);
