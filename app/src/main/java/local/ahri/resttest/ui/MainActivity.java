@@ -57,7 +57,8 @@ public class MainActivity extends AppCompatActivity {
             .subscribe(rawdataDTO -> {
                 Log.i("MainActivity", "onSubscribe");
                 TextView t = findViewById(R.id.mytext);
-                t.setText(String.format("%d", rawdataDTO.getAvgLux()));
+                //t.setText(String.format("%d", rawdataDTO.getAvgLux()));
+                Log.i("메인스텝",Integer.toString(rawdataDTO.getSteps()));
             }, Throwable::printStackTrace);
     }
 

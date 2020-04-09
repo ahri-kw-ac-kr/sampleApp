@@ -33,6 +33,8 @@ public class SleepDoc {
     private BluetoothGatt gatt;
     private boolean isConnected = false;
 
+    public int i=0;
+
     public SleepDoc(String macAddress) {
         this.macAddress = macAddress;
         bleManager = BleManager.getInstance();
@@ -112,9 +114,11 @@ public class SleepDoc {
                                 SyncDataDTO syncDataDTO = SyncDataDTO.ParseByteArray(values);
                                 for (final RawdataDTO rawdataDTO : syncDataDTO.rawdataDTOArray) {
                                     Log.i("SleepDoc", "Sync data is parsed into rawdata");
-                                    Log.i("럭스값", Integer.toString(rawdataDTO.getAvgLux()));`
+                                    Log.i("스텝값", Integer.toString(i)+"_"+Integer.toString(rawdataDTO.getSteps()));
                                     observer.onNext(rawdataDTO);
+                                    i++;
                                 }
+                                bleManager.write(bleDevice, ServiceUUID.SYNC.toString(), CharacteristicUUID.SYNC_CONTROL.toString(), new byte[]{Command.SYNC_CONTROL_PREPARE_NEXT}, logWriteCallback);
                             } catch (ZeroLengthException e) {
                                 Log.i("SleepDoc", "Sync data has 0 length, Sync is done.");
                                 bleManager.write(bleDevice, ServiceUUID.SYNC.toString(), CharacteristicUUID.SYNC_CONTROL.toString(), new byte[]{Command.SYNC_CONTROL_DONE}, logWriteCallback);
