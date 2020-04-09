@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Completable;
+import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
@@ -103,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
         viewModel.getRawdataFromSleepDoc()
                 .observeOn(Schedulers.io())
                 .subscribeOn(AndroidSchedulers.mainThread())
-                .subscribe(rawdataDTO -> Log.i("MainActivity", String.format("%d", rawdataDTO.getAvgLux())), Throwable::printStackTrace);
+                .subscribe(rawdataDTO -> Log.i("럭스", String.format("%d", rawdataDTO.getAvgLux())), Throwable::printStackTrace);
     }
 }
 

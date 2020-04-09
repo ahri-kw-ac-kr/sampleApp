@@ -118,6 +118,7 @@ public class SleepDoc {
                                     SyncDataDTO syncDataDTO = SyncDataDTO.ParseByteArray(values);
                                     for (final RawdataDTO rawdataDTO : syncDataDTO.rawdataDTOArray) {
                                         Log.i("SleepDoc", "Sync data is parsed into rawdata");
+                                        Log.i("럭스값",Integer.toString(rawdataDTO.getAvgLux()));
                                         observer.onNext(rawdataDTO);
                                     }
                                 } catch (ZeroLengthException e) {
