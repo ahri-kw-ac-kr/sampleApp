@@ -38,8 +38,6 @@ public class SleepDoc {
         bleManager = BleManager.getInstance();
     }
 
-    private SleepDoc() {}
-
     public Completable connect() {
         return Completable.create(observer -> {
             Log.i("Sleepdoc", "connect start");
@@ -75,7 +73,7 @@ public class SleepDoc {
 
     public Observable<RawdataDTO> getRawdata() {
         if (!isConnected) {
-            Log.d("SleepDoc", "이거 나요면 안됨");
+            Log.d("SleepDoc", "이거 나오면 안됨");
         }
         refreshDeviceCache(gatt);
         BluetoothGattCharacteristic syncControlChar = gatt.getService(ServiceUUID.SYNC).getCharacteristic(CharacteristicUUID.SYNC_CONTROL);

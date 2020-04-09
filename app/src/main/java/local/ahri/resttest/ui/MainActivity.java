@@ -20,6 +20,7 @@ import android.widget.TextView;
 
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Completable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -92,11 +93,13 @@ public class MainActivity extends AppCompatActivity {
         viewModel.connectSleepDoc(macAddress)
                 .observeOn(Schedulers.io())
                 .subscribeOn(AndroidSchedulers.mainThread())
-                .doOnComplete(() -> Log.i("MainActivity", "connect end"))
-                .andThen(viewModel.getRawdataFromSleepDoc())
-                .observeOn(Schedulers.io())
-                .subscribeOn(AndroidSchedulers.mainThread())
-                .subscribe(rawdataDTO -> Log.i("MainActivity", String.format("%d", rawdataDTO.getAvgLux())), Throwable::printStackTrace);
+                .doOnComplete(() -> Log.i("MainActivity", "on Complete"))
+                .subscribe(() -> {
+                    Log.i("MainActivity", "on Subscribe");
+                    viewModel.getRawdataFromSleepDoc()
+                            .subscribe(rawdataDTO -> Log.i("MainActivity", String.format("%d", rawdataDTO.getAvgLux())), Throwable::printStackTrace);
+                });
+
     }
 }
 
