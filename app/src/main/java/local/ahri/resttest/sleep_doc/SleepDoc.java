@@ -92,7 +92,7 @@ public class SleepDoc {
                         @Override
                         public void onReadSuccess(byte[] values) {
                             Log.i("SleepDoc", "Read from SleepDoc");
-                            if (values[0] == 0) {
+                            if (values[0] != 0) {
                                 bleManager.write(bleDevice, ServiceUUID.SYNC.toString(), CharacteristicUUID.SYNC_CONTROL.toString(), new byte[]{Command.SYNC_CONTROL_DONE}, logWriteCallback);
                             }
                             observer.onNext(values);

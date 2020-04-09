@@ -21,6 +21,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 import local.ahri.resttest.R;
 import local.ahri.resttest.databinding.ActivityMainBinding;
+import local.ahri.resttest.exceptions.MacAddressIsNotProvidedException;
 import local.ahri.resttest.model.RestfulAPI;
 import local.ahri.resttest.model.RestfulAPIService;
 import local.ahri.resttest.model.SleepDocService;
@@ -94,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
         SleepDocService.setMacAddress(macAddress);
         try {
             sleepDocService = SleepDocService.getInstance();
-        } catch (Exception e) {
+        } catch (MacAddressIsNotProvidedException e) {
             e.printStackTrace();
         }
         sleepDocService.getRawdata()

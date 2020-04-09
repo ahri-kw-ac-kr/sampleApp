@@ -6,8 +6,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 
-import local.ahri.resttest.sleep_doc.exceptions.PrepareNextException;
-import local.ahri.resttest.sleep_doc.exceptions.SyncDoneException;
+import local.ahri.resttest.exceptions.DataIsTooShortException;
+import local.ahri.resttest.exceptions.ZeroLengthException;
 
 import static local.ahri.resttest.sleep_doc.Spec.SYNC_DATA_BYTE_LENGTH;
 
@@ -22,15 +22,15 @@ public class SyncDataDTO implements Serializable {
 
     private static ByteArrayOutputStream syncDataStream = new ByteArrayOutputStream();
 
-    static public SyncDataDTO ParseByteArray(byte[] bytes) throws PrepareNextException, SyncDoneException {
+    static public SyncDataDTO ParseByteArray(byte[] bytes) throws DataIsTooShortException, ZeroLengthException {
         if (bytes[0] == 0) {
-            throw new SyncDoneException("Sync Done");
+            throw new ZeroLengthException("Sync Done");
         }
         syncDataStream.write(bytes, 1, bytes[0]);
         Log.i("SleepDocService", "readDataSize :"+syncDataStream.size() + "  SleepdocDataSize : "+ SYNC_DATA_BYTE_LENGTH);
 
         if( syncDataStream.size() < SYNC_DATA_BYTE_LENGTH ) {
-            throw new PrepareNextException("Prepare Next");
+            throw new DataIsTooShortException("Prepare Next");
         }
 
         byte[] stream = syncDataStream.toByteArray();
