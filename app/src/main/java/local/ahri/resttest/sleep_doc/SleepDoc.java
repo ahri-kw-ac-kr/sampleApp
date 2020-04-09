@@ -98,7 +98,7 @@ public class SleepDoc {
                 @Override
                 public void onCharacteristicChanged(byte[] data) {
                     Log.i("SleepDoc", "Characteristic Changed");
-                    if(data[0]==Command.SYNC_NOTI_DONE) {
+                    if(data[0] == Command.SYNC_NOTI_DONE) {
                         Log.i("SleepDoc", "Sync Noti Done");
                         observer.onComplete();
                         return;
@@ -112,7 +112,7 @@ public class SleepDoc {
                                 SyncDataDTO syncDataDTO = SyncDataDTO.ParseByteArray(values);
                                 for (final RawdataDTO rawdataDTO : syncDataDTO.rawdataDTOArray) {
                                     Log.i("SleepDoc", "Sync data is parsed into rawdata");
-                                    Log.i("럭스값",Integer.toString(rawdataDTO.getAvgLux()));
+                                    Log.i("럭스값", Integer.toString(rawdataDTO.getAvgLux()));
                                     observer.onNext(rawdataDTO);
                                 }
                             } catch (ZeroLengthException e) {

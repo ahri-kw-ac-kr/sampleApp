@@ -49,6 +49,15 @@ public class MainActivity extends AppCompatActivity {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(this::printUsers, Throwable::printStackTrace);
+
+        viewModel.getRawdataFromSleepDoc()
+                .observeOn(Schedulers.io())
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .subscribe(rawdataDTO -> {
+                    Log.i("MainActivity", "onSubscribe");
+                    TextView t = findViewById(R.id.mytext);
+                    t.setText(String.format("%d", rawdataDTO.getAvgLux()));
+                }, Throwable::printStackTrace);
     }
 
     private void printUsers(PageDTO<UserDTO> body) {
@@ -95,20 +104,9 @@ public class MainActivity extends AppCompatActivity {
                 .observeOn(Schedulers.io())
                 .subscribeOn(AndroidSchedulers.mainThread())
                 .doOnComplete(() -> Log.i("MainActivity", "on Complete"))
-                .subscribe(this::a, Throwable::printStackTrace);
+                .subscribe(() -> {}, Throwable::printStackTrace);
 
     }
 
-    void a() {
-        Log.i("MainActivity", "func a start");
-        viewModel.getRawdataFromSleepDoc()
-                .observeOn(Schedulers.io())
-                .subscribeOn(AndroidSchedulers.mainThread())
-                .subscribe(rawdataDTO -> {
-                    Log.i("MainActivity", "onSubscribe");
-                    TextView t = findViewById(R.id.mytext);
-                    t.setText(String.format("%d", rawdataDTO.getAvgLux()));
-                }, Throwable::printStackTrace);
-    }
 }
 
