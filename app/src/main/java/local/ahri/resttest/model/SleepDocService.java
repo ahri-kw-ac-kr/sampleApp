@@ -6,6 +6,9 @@ import android.util.Log;
 import java.io.ByteArrayOutputStream;
 
 import io.reactivex.Observable;
+import io.reactivex.Scheduler;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 import local.ahri.resttest.exceptions.MacAddressIsNotProvidedException;
 import local.ahri.resttest.model.dto.RawdataDTO;
 import local.ahri.resttest.model.dto.SyncDataDTO;
@@ -24,6 +27,8 @@ public class SleepDocService {
     public Observable<RawdataDTO> getRawdata() {
         return Observable.create(observer ->
             sleepDoc.getRawdata()
+                    .observeOn(Schedulers.io())
+                .subscribeOn(AndroidSchedulers.mainThread())
                 .subscribe(bytes ->  {
                     try {
                         Log.i("SleepDocService", "Sync data is arrived");
