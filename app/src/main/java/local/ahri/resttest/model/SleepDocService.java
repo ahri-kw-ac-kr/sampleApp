@@ -8,8 +8,6 @@ import local.ahri.resttest.sleep_doc.dto.RawdataDTO;
 import local.ahri.resttest.sleep_doc.SleepDoc;
 
 public class SleepDocService {
-    private String macAddress;
-    private boolean isConnected;
     private static SleepDoc sleepDoc;
     private static SleepDocService sleepDocService;
 
@@ -17,11 +15,7 @@ public class SleepDocService {
         return sleepDoc.getRawdata();
     }
 
-    private void setMacAddress(String _macAddress) {
-        macAddress = _macAddress;
-    }
     public Completable connect(String macAddress) {
-        this.setMacAddress(macAddress);
         sleepDoc = new SleepDoc(macAddress);
         return sleepDoc.connect();
     }

@@ -34,7 +34,7 @@ public class MainActivityViewModel extends ViewModel {
         return sleepDocService.connect(mac);
     }
 
-    public Observable<RawdataDTO> getRawdata() {
+    public Observable<RawdataDTO> getRawdataFromSleepDoc() {
         return sleepDocService.getRawdata();
     }
 

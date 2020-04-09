@@ -29,15 +29,18 @@ import local.ahri.resttest.sleep_doc.uuid.ServiceUUID;
 public class SleepDoc {
     private BleManager bleManager;
     private String macAddress;
-
     private BleDevice bleDevice;
+    private BluetoothGatt gatt;
 
     public SleepDoc(String macAddress) {
         this.macAddress = macAddress;
         bleManager = BleManager.getInstance();
+        gatt = bleManager.getBluetoothGatt(bleDevice);
+        refreshDeviceCache(gatt);
     }
 
     public Completable connect() {
+        refreshDeviceCache(gatt);
         return Completable.create(observer -> bleManager.connect(macAddress, new BleGattCallback() {
             @Override
             public void onStartConnect() {
@@ -65,7 +68,6 @@ public class SleepDoc {
     }
 
     public Observable<RawdataDTO> getRawdata() {
-        BluetoothGatt gatt = bleManager.getBluetoothGatt(bleDevice);
         refreshDeviceCache(gatt);
         BluetoothGattCharacteristic syncControlChar = gatt.getService(ServiceUUID.SYNC).getCharacteristic(CharacteristicUUID.SYNC_CONTROL);
         BluetoothGattDescriptor descriptor = syncControlChar.getDescriptor(DescriptorUUID.CLIENT_CHARACTERISTIC_CONFIGURATION);

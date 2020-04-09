@@ -81,17 +81,11 @@ public class MainActivity extends AppCompatActivity {
                 .subscribe(RestfulAPI::setToken, Throwable::printStackTrace);
 
 
-
         BleManager.getInstance().init(getApplication());
         String macAddress = "D0:31:A1:4B:DC:34";
 
-        viewModel.scanBle()
-            .subscribe(bleDeviceDTO -> {
-                Log.i("MainActivity", String.format("find: %s", bleDeviceDTO.getMacAddress()));
-            });
-
         viewModel.connectSleepDoc(macAddress)
-                .andThen(viewModel.getRawdata())
+                .andThen(viewModel.getRawdataFromSleepDoc())
                 .subscribe(rawdataDTO -> Log.i("MainActivity", String.format("%d", rawdataDTO.getAvgLux())), Throwable::printStackTrace);
     }
 }
