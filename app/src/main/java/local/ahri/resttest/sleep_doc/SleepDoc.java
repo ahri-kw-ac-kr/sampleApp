@@ -15,6 +15,7 @@ import com.clj.fastble.exception.BleException;
 
 import java.lang.reflect.Method;
 
+import io.reactivex.Completable;
 import io.reactivex.Observable;
 import local.ahri.resttest.exceptions.DataIsTooShortException;
 import local.ahri.resttest.exceptions.ZeroLengthException;
@@ -34,7 +35,10 @@ public class SleepDoc {
     public SleepDoc(String macAddress) {
         this.macAddress = macAddress;
         bleManager = BleManager.getInstance();
-        bleManager.connect(macAddress, new BleGattCallback() {
+    }
+
+    public Completable connect() {
+        return Completable.create(observer -> bleManager.connect(macAddress, new BleGattCallback() {
             @Override
             public void onStartConnect() {
                 Log.i("SleepDoc", "연결시작");
@@ -43,23 +47,21 @@ public class SleepDoc {
             @Override
             public void onConnectFail(BleDevice _bleDevice, BleException exception) {
                 Log.i("SleepDoc", "연결실패");
+                observer.onError(new Exception(String.format("Connect fail: %s", macAddress)));
             }
 
             @Override
             public void onConnectSuccess(BleDevice _bleDevice, BluetoothGatt gatt, int status) {
                 Log.i("SleepDoc", "연결성공");
                 bleDevice = _bleDevice;
+                observer.onComplete();
             }
 
             @Override
             public void onDisConnected(boolean isActiveDisConnected, BleDevice bleDevice, BluetoothGatt gatt, int status) {
                 Log.i("SleepDoc", "연결해제");
             }
-        });
-    }
-
-    public void prepareNext() {
-        bleManager.write(bleDevice, ServiceUUID.SYNC.toString(), CharacteristicUUID.SYNC_CONTROL.toString(), new byte[]{Command.SYNC_CONTROL_PREPARE_NEXT}, logWriteCallback);
+        }));
     }
 
     public Observable<RawdataDTO> getRawdata() {
@@ -98,9 +100,10 @@ public class SleepDoc {
                             Log.i("SleepDoc", "Read from SleepDoc");
                             if (isSyncDone(values)) {
                                 // Sync done
-                                Log.d("읽기 성공","if문 들어감");
+                                Log.d("SleepDoc","if문 들어감");
                                 bleManager.write(bleDevice, ServiceUUID.SYNC.toString(), CharacteristicUUID.SYNC_CONTROL.toString(), new byte[]{Command.SYNC_CONTROL_DONE}, logWriteCallback);
                             } else {
+                                Log.d("SleepDoc","else");
                                 try {
                                     Log.i("SleepDoc", "Sync data is arrived");
                                     SyncDataDTO syncDataDTO = SyncDataDTO.ParseByteArray(values);
@@ -112,7 +115,7 @@ public class SleepDoc {
                                     Log.i("SleepDoc", "Sync data has 0 length, Sync is done.");
                                 } catch (DataIsTooShortException e) {
                                     Log.i("SleepDoc", "Request next data");
-                                    prepareNext();
+                                    bleManager.write(bleDevice, ServiceUUID.SYNC.toString(), CharacteristicUUID.SYNC_CONTROL.toString(), new byte[]{Command.SYNC_CONTROL_PREPARE_NEXT}, logWriteCallback);
                                 }
                             }
                         }

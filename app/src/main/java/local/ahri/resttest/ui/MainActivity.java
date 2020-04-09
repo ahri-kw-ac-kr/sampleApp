@@ -17,7 +17,9 @@ import android.widget.TextView;
 
 import java.util.List;
 
+import io.reactivex.Completable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import local.ahri.resttest.R;
 import local.ahri.resttest.databinding.ActivityMainBinding;
@@ -89,10 +91,8 @@ public class MainActivity extends AppCompatActivity {
             });
 
         viewModel.connectSleepDoc(macAddress)
-            .doOnComplete(() ->
-                viewModel.getRawdata()
-                    .subscribe(rawdataDTO -> Log.i("MainActivity", String.format("%d", rawdataDTO.getAvgLux())), Throwable::printStackTrace)
-        );
+                .andThen(viewModel.getRawdata())
+                .subscribe(rawdataDTO -> Log.i("MainActivity", String.format("%d", rawdataDTO.getAvgLux())), Throwable::printStackTrace);
     }
 }
 

@@ -13,7 +13,6 @@ public class SleepDocService {
     private static SleepDoc sleepDoc;
     private static SleepDocService sleepDocService;
 
-    @SuppressLint("CheckResult")
     public Observable<RawdataDTO> getRawdata() {
         return sleepDoc.getRawdata();
     }
@@ -21,12 +20,10 @@ public class SleepDocService {
     private void setMacAddress(String _macAddress) {
         macAddress = _macAddress;
     }
-    public Completable connect() {
-        return Completable.fromRunnable(() -> sleepDoc = new SleepDoc(macAddress));
-    }
     public Completable connect(String macAddress) {
         this.setMacAddress(macAddress);
-        return connect();
+        sleepDoc = new SleepDoc(macAddress);
+        return sleepDoc.connect();
     }
 
     public static synchronized SleepDocService getInstance() {
