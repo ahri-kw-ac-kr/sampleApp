@@ -107,26 +107,20 @@ public class SleepDoc {
                         @Override
                         public void onReadSuccess(byte[] values) {
                             Log.i("SleepDoc", "Read from SleepDoc");
-                            if (isSyncDone(values)) {
-                                // Sync done
-                                Log.d("SleepDoc","if문 들어감");
-                                bleManager.write(bleDevice, ServiceUUID.SYNC.toString(), CharacteristicUUID.SYNC_CONTROL.toString(), new byte[]{Command.SYNC_CONTROL_DONE}, logWriteCallback);
-                            } else {
-                                Log.d("SleepDoc","else");
-                                try {
-                                    Log.i("SleepDoc", "Sync data is arrived");
-                                    SyncDataDTO syncDataDTO = SyncDataDTO.ParseByteArray(values);
-                                    for (final RawdataDTO rawdataDTO : syncDataDTO.rawdataDTOArray) {
-                                        Log.i("SleepDoc", "Sync data is parsed into rawdata");
-                                        Log.i("럭스값",Integer.toString(rawdataDTO.getAvgLux()));
-                                        observer.onNext(rawdataDTO);
-                                    }
-                                } catch (ZeroLengthException e) {
-                                    Log.i("SleepDoc", "Sync data has 0 length, Sync is done.");
-                                } catch (DataIsTooShortException e) {
-                                    Log.i("SleepDoc", "Request next data");
-                                    bleManager.write(bleDevice, ServiceUUID.SYNC.toString(), CharacteristicUUID.SYNC_CONTROL.toString(), new byte[]{Command.SYNC_CONTROL_PREPARE_NEXT}, logWriteCallback);
+                            try {
+                                Log.i("SleepDoc", "Sync data is arrived");
+                                SyncDataDTO syncDataDTO = SyncDataDTO.ParseByteArray(values);
+                                for (final RawdataDTO rawdataDTO : syncDataDTO.rawdataDTOArray) {
+                                    Log.i("SleepDoc", "Sync data is parsed into rawdata");
+                                    Log.i("럭스값",Integer.toString(rawdataDTO.getAvgLux()));
+                                    observer.onNext(rawdataDTO);
                                 }
+                            } catch (ZeroLengthException e) {
+                                Log.i("SleepDoc", "Sync data has 0 length, Sync is done.");
+                                bleManager.write(bleDevice, ServiceUUID.SYNC.toString(), CharacteristicUUID.SYNC_CONTROL.toString(), new byte[]{Command.SYNC_CONTROL_DONE}, logWriteCallback);
+                            } catch (DataIsTooShortException e) {
+                                Log.i("SleepDoc", "Request next data");
+                                bleManager.write(bleDevice, ServiceUUID.SYNC.toString(), CharacteristicUUID.SYNC_CONTROL.toString(), new byte[]{Command.SYNC_CONTROL_PREPARE_NEXT}, logWriteCallback);
                             }
                         }
                         @Override
@@ -138,10 +132,6 @@ public class SleepDoc {
                 }
             });
         });
-    }
-
-    private boolean isSyncDone(byte[] values) {
-        return values[0] == 0;
     }
 
     private synchronized void refreshDeviceCache(BluetoothGatt bluetoothGatt) {

@@ -104,7 +104,11 @@ public class MainActivity extends AppCompatActivity {
         viewModel.getRawdataFromSleepDoc()
                 .observeOn(Schedulers.io())
                 .subscribeOn(AndroidSchedulers.mainThread())
-                .subscribe(rawdataDTO -> Log.i("럭스", String.format("%d", rawdataDTO.getAvgLux())), Throwable::printStackTrace);
+                .subscribe(rawdataDTO -> {
+                    Log.i("MainActivity", "onSubscribe");
+                    TextView t = findViewById(R.id.mytext);
+                    t.setText(String.format("%d", rawdataDTO.getAvgLux()));
+                }, Throwable::printStackTrace);
     }
 }
 
