@@ -98,6 +98,7 @@ public class SleepDoc {
                             Log.i("SleepDoc", "Read from SleepDoc");
                             if (isSyncDone(values)) {
                                 // Sync done
+                                Log.d("읽기 성공","if문 들어감");
                                 bleManager.write(bleDevice, ServiceUUID.SYNC.toString(), CharacteristicUUID.SYNC_CONTROL.toString(), new byte[]{Command.SYNC_CONTROL_DONE}, logWriteCallback);
                             } else {
                                 try {
