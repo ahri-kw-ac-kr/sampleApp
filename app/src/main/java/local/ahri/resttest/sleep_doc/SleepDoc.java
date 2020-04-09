@@ -39,6 +39,7 @@ public class SleepDoc {
     }
 
     public Completable connect() {
+        Log.i("Sleepdoc", "connect start");
         return Completable.create(observer -> bleManager.connect(macAddress, new BleGattCallback() {
             @Override
             public void onStartConnect() {
@@ -56,18 +57,22 @@ public class SleepDoc {
                 Log.i("SleepDoc", "연결성공");
                 bleDevice = _bleDevice;
                 isConnected = true;
-                gatt = _gatt;
+                gatt = bleManager.getBluetoothGatt(bleDevice);
                 observer.onComplete();
             }
 
             @Override
             public void onDisConnected(boolean isActiveDisConnected, BleDevice bleDevice, BluetoothGatt gatt, int status) {
                 Log.i("SleepDoc", "연결해제");
+                isConnected = false;
             }
         }));
     }
 
     public Observable<RawdataDTO> getRawdata() {
+        if (!isConnected) {
+            Log.d("SleepDoc", "이거 나요면 안됨");
+        }
         refreshDeviceCache(gatt);
         BluetoothGattCharacteristic syncControlChar = gatt.getService(ServiceUUID.SYNC).getCharacteristic(CharacteristicUUID.SYNC_CONTROL);
         BluetoothGattDescriptor descriptor = syncControlChar.getDescriptor(DescriptorUUID.CLIENT_CHARACTERISTIC_CONFIGURATION);

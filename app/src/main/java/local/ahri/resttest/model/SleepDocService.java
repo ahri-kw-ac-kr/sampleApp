@@ -1,6 +1,7 @@
 package local.ahri.resttest.model;
 
 import android.annotation.SuppressLint;
+import android.util.Log;
 
 import io.reactivex.Completable;
 import io.reactivex.Observable;
@@ -16,6 +17,7 @@ public class SleepDocService {
     }
 
     public Completable connect(String macAddress) {
+        Log.i("SleepdocService", "connect start");
         sleepDoc = new SleepDoc(macAddress);
         return sleepDoc.connect();
     }

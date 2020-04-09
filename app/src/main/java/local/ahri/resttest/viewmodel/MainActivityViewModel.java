@@ -1,5 +1,7 @@
 package local.ahri.resttest.viewmodel;
 
+import android.util.Log;
+
 import androidx.lifecycle.ViewModel;
 
 import java.util.List;
@@ -31,6 +33,7 @@ public class MainActivityViewModel extends ViewModel {
     }
 
     public Completable connectSleepDoc(String mac) {
+        Log.i("Viewmodel", "connect start");
         return sleepDocService.connect(mac);
     }
 
