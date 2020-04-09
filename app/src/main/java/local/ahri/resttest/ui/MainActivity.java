@@ -94,12 +94,16 @@ public class MainActivity extends AppCompatActivity {
                 .observeOn(Schedulers.io())
                 .subscribeOn(AndroidSchedulers.mainThread())
                 .doOnComplete(() -> Log.i("MainActivity", "on Complete"))
-                .subscribe(() -> {
-                    Log.i("MainActivity", "on Subscribe");
-                    viewModel.getRawdataFromSleepDoc()
-                            .subscribe(rawdataDTO -> Log.i("MainActivity", String.format("%d", rawdataDTO.getAvgLux())), Throwable::printStackTrace);
-                });
+                .subscribe(this::a, Throwable::printStackTrace);
 
+    }
+
+    void a() {
+        Log.i("MainActivity", "func a start");
+        viewModel.getRawdataFromSleepDoc()
+                .observeOn(Schedulers.io())
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .subscribe(rawdataDTO -> Log.i("MainActivity", String.format("%d", rawdataDTO.getAvgLux())), Throwable::printStackTrace);
     }
 }
 
