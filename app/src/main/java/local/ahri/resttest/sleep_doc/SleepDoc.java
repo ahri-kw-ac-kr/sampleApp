@@ -92,10 +92,12 @@ public class SleepDoc {
                         @Override
                         public void onReadSuccess(byte[] values) {
                             Log.i("SleepDoc", "Read from SleepDoc");
-                            if (values[0] != 0) {
+                            if (isSyncDone(values)) {
+                                // Sync done
                                 bleManager.write(bleDevice, ServiceUUID.SYNC.toString(), CharacteristicUUID.SYNC_CONTROL.toString(), new byte[]{Command.SYNC_CONTROL_DONE}, logWriteCallback);
+                            } else {
+                                observer.onNext(values);
                             }
-                            observer.onNext(values);
                         }
                         @Override
                         public void onReadFailure(BleException exception) {
@@ -106,6 +108,10 @@ public class SleepDoc {
                 }
             });
         });
+    }
+
+    private boolean isSyncDone(byte[] values) {
+        return values[0] == 0;
     }
 
     private synchronized void refreshDeviceCache(BluetoothGatt bluetoothGatt) {

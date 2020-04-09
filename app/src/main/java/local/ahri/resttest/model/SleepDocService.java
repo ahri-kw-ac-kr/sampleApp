@@ -26,17 +26,20 @@ public class SleepDocService {
             sleepDoc.getRawdata()
                 .subscribe(bytes ->  {
                     try {
+                        Log.i("SleepDocService", "Sync data is arrived");
                         SyncDataDTO syncDataDTO = SyncDataDTO.ParseByteArray(bytes);
                         for (final RawdataDTO rawdataDTO : syncDataDTO.rawdataDTOArray) {
+                            Log.i("SleepDocService", "Sync data is parsed into rawdata");
                             observer.onNext(rawdataDTO);
                         }
                     } catch (ZeroLengthException e) {
+                        Log.i("SleepDocService", "Sync data has 0 length, Sync is done.");
                         observer.onComplete();
                     } catch (DataIsTooShortException e) {
+                        Log.i("SleepDocService", "Request next data");
                         sleepDoc.prepareNext();
                     }
-
-                }, observer::onError, observer::onComplete);
+                }, observer::onError, observer::onComplete)
         );
     }
 
