@@ -3,6 +3,7 @@ package local.ahri.resttest.model;
 import java.io.IOException;
 
 import local.ahri.resttest.model.dto.AuthDTO;
+import local.ahri.resttest.model.dto.UserDTO;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -16,6 +17,7 @@ public class RestfulAPI {
     private static String url = "http://13.209.225.252/api/v1/";
     private static RestfulAPIService restfulAPIService;
     public static String token;
+    public static UserDTO principalUser;
 
     public static synchronized RestfulAPIService getInstance() {
         if (restfulAPIService == null) {
@@ -31,6 +33,7 @@ public class RestfulAPI {
 
     public static synchronized void setToken(AuthDTO authDTO) {
         RestfulAPI.token = authDTO.getToken();
+        RestfulAPI.principalUser = authDTO.getUser();
         OkHttpClient client = new OkHttpClient.Builder().addInterceptor(new Interceptor() {
             @Override
             public Response intercept(Chain chain) throws IOException {
