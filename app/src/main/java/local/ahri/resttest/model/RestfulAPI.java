@@ -12,7 +12,6 @@ import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RestfulAPI {
-//    private static String url = "http://localhost:8080";
 //    private static String url = "ec2-13-209-48-203.ap-northeast-2.compute.amazonaws.com/api/v1";
     private static String url = "http://13.209.225.252/api/v1/";
     private static RestfulAPIService restfulAPIService;
