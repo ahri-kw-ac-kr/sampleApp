@@ -35,7 +35,7 @@ public class SyncDataDTO implements Serializable {
     [2]  - resetNum
     [4]  - remain
      */
-    static public SyncDataDTO ParseByteArray(byte[] bytes) throws DataIsTooShortException, ZeroLengthException {
+    static public SyncDataDTO ParseByteArray(byte[] bytes) throws DataIsTooShortException, ZeroLengthException, IllegalAccessException {
         if (bytes[0] == 0) {
             throw new ZeroLengthException("Sync Done");
         }
@@ -81,6 +81,23 @@ public class SyncDataDTO implements Serializable {
         wrapped = ByteBuffer.wrap(remainBytes).order(java.nio.ByteOrder.LITTLE_ENDIAN);
         syncDataDTO.remain = wrapped.getInt();
 
-        return syncDataDTO;
+        if(syncDataStream.size()%154==0){
+            for(int i=0;i<6;i++){
+            Log.d("싱크디티오 "+Integer.toString(i)+"번째",String.format("  \t%d\t\t%d\t\t%d\t%d\t%d\t%d\t%d\t%d\t%d",
+                    syncDataDTO.rawdataDTOArray[i].getStartTick(),
+                    syncDataDTO.rawdataDTOArray[i].getEndTick(),
+                    syncDataDTO.rawdataDTOArray[i].getSteps(),
+                    syncDataDTO.rawdataDTOArray[i].getTotalLux(),
+                    syncDataDTO.rawdataDTOArray[i].getAvgLux(),
+                    syncDataDTO.rawdataDTOArray[i].getAvgTemp(),
+                    syncDataDTO.rawdataDTOArray[i].getVectorX(),
+                    syncDataDTO.rawdataDTOArray[i].getVectorY(),
+                    syncDataDTO.rawdataDTOArray[i].getVectorZ()));}
+            Log.d("싱크디티오 타임존", "device timezone: " + syncDataDTO.timezone);
+            return syncDataDTO;
+        }
+        else{
+            throw new IllegalAccessException("정상적인 데이터가 아니다");
+        }
     }
 }

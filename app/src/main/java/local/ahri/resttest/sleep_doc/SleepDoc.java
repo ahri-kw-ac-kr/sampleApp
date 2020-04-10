@@ -33,8 +33,6 @@ public class SleepDoc {
     private BluetoothGatt gatt;
     private boolean isConnected = false;
 
-    public int i=0;
-
     public SleepDoc(String macAddress) {
         this.macAddress = macAddress;
         bleManager = BleManager.getInstance();
@@ -112,18 +110,39 @@ public class SleepDoc {
                             try {
                                 Log.i("SleepDoc", "Sync data is arrived");
                                 SyncDataDTO syncDataDTO = SyncDataDTO.ParseByteArray(values);
-                                for (final RawdataDTO rawdataDTO : syncDataDTO.rawdataDTOArray) {
+                                /*for (final RawdataDTO rawdataDTO : syncDataDTO.rawdataDTOArray) {
                                     Log.i("SleepDoc", "Sync data is parsed into rawdata");
                                     Log.i("스텝값", Integer.toString(i)+"_"+Integer.toString(rawdataDTO.getSteps()));
-                                    observer.onNext(rawdataDTO);
+                                    //observer.onNext(rawdataDTO);
                                     i++;
+                                }*/
+                                int count = 0;
+                                for (int i=0;i<6;i++){
+                                    RawdataDTO rawdataDTO = syncDataDTO.rawdataDTOArray[i];
+                                    Log.d("슬립닥 raw디티오 "+Integer.toString(i)+"번째",String.format("  \t%d\t\t%d\t\t%d\t%d\t%d\t%d\t%d\t%d\t%d",
+                                            rawdataDTO.getStartTick(),
+                                            rawdataDTO.getEndTick(),
+                                            rawdataDTO.getSteps(),
+                                            rawdataDTO.getTotalLux(),
+                                            rawdataDTO.getAvgLux(),
+                                            rawdataDTO.getAvgTemp(),
+                                            rawdataDTO.getVectorX(),
+                                            rawdataDTO.getVectorY(),
+                                            rawdataDTO.getVectorZ()));
+                                    if(rawdataDTO.getStartTick()==0){ break; }
+                                    count += 1;
                                 }
+                                if(count == 0){ observer.onNext(syncDataDTO.rawdataDTOArray[count]); }
+                                else { observer.onNext(syncDataDTO.rawdataDTOArray[count-1]); }
                                 bleManager.write(bleDevice, ServiceUUID.SYNC.toString(), CharacteristicUUID.SYNC_CONTROL.toString(), new byte[]{Command.SYNC_CONTROL_PREPARE_NEXT}, logWriteCallback);
                             } catch (ZeroLengthException e) {
                                 Log.i("SleepDoc", "Sync data has 0 length, Sync is done.");
                                 bleManager.write(bleDevice, ServiceUUID.SYNC.toString(), CharacteristicUUID.SYNC_CONTROL.toString(), new byte[]{Command.SYNC_CONTROL_DONE}, logWriteCallback);
                             } catch (DataIsTooShortException e) {
                                 Log.i("SleepDoc", "Request next data");
+                                bleManager.write(bleDevice, ServiceUUID.SYNC.toString(), CharacteristicUUID.SYNC_CONTROL.toString(), new byte[]{Command.SYNC_CONTROL_PREPARE_NEXT}, logWriteCallback);
+                            } catch(IllegalAccessException e){
+                                Log.i("SleepDoc","It is not raw data.");
                                 bleManager.write(bleDevice, ServiceUUID.SYNC.toString(), CharacteristicUUID.SYNC_CONTROL.toString(), new byte[]{Command.SYNC_CONTROL_PREPARE_NEXT}, logWriteCallback);
                             }
                         }

@@ -46,10 +46,10 @@ public class MainActivity extends AppCompatActivity {
         MainActivityViewModel viewModel = new MainActivityViewModel();
         Log.d("뷰모델", viewModel.toString() + " 토큰은?? " + RestfulAPI.token);
 
-        viewModel.getAllUser()
+        /*viewModel.getAllUser()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(this::printUsers, Throwable::printStackTrace);
+            .subscribe(this::printUsers, Throwable::printStackTrace);*/
 
         viewModel.getRawdataFromSleepDoc()
             .observeOn(Schedulers.io())
@@ -57,8 +57,18 @@ public class MainActivity extends AppCompatActivity {
             .subscribe(rawdataDTO -> {
                 Log.i("MainActivity", "onSubscribe");
                 TextView t = findViewById(R.id.mytext);
-                //t.setText(String.format("%d", rawdataDTO.getAvgLux()));
-                Log.i("메인스텝",Integer.toString(rawdataDTO.getSteps()));
+                //t.setText(String.format("  데이터는 \t%d\t\t%d\t\t%d\t%d\t%d\t%d\t%d\t%d\t%d",
+                Log.i("메인으로 전달된",String.format("  데이터는 \t%d\t\t%d\t\t%d\t%d\t%d\t%d\t%d\t%d\t%d",
+                        rawdataDTO.getStartTick(),
+                        rawdataDTO.getEndTick(),
+                        rawdataDTO.getSteps(),
+                        rawdataDTO.getTotalLux(),
+                        rawdataDTO.getAvgLux(),
+                        rawdataDTO.getAvgTemp(),
+                        rawdataDTO.getVectorX(),
+                        rawdataDTO.getVectorY(),
+                        rawdataDTO.getVectorZ()));
+                //Log.i("메인스텝",Integer.toString(rawdataDTO.getSteps()));
             }, Throwable::printStackTrace);
     }
 
