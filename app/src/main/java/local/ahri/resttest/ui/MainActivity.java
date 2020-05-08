@@ -52,13 +52,13 @@ public class MainActivity extends AppCompatActivity {
             .subscribe(this::printUsers, Throwable::printStackTrace);*/
 
         viewModel.getRawdataFromSleepDoc()
-            .observeOn(Schedulers.io())
-            .subscribeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
             .subscribe(rawdataDTO -> {
                 Log.i("MainActivity", "onSubscribe");
                 TextView t = findViewById(R.id.mytext);
-                //t.setText(String.format("  데이터는 \t%d\t\t%d\t\t%d\t%d\t%d\t%d\t%d\t%d\t%d",
-                Log.i("메인으로 전달된",String.format("  데이터는 \t%d\t\t%d\t\t%d\t%d\t%d\t%d\t%d\t%d\t%d",
+                t.setText(String.format("  데이터는 \t%d\t\t%d\t\t%d\t%d\t%d\t%d\t%d\t%d\t%d",
+                //Log.i("메인으로 전달된",String.format("  데이터는 \t%d\t\t%d\t\t%d\t%d\t%d\t%d\t%d\t%d\t%d",
                         rawdataDTO.getStartTick(),
                         rawdataDTO.getEndTick(),
                         rawdataDTO.getSteps(),

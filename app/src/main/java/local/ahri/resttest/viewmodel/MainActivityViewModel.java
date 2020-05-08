@@ -45,6 +45,7 @@ public class MainActivityViewModel extends ViewModel {
         return bleService.scanBle();
     }
 
+
     public Single<UserDTO> postRegister(UserDTO user){
         return restfulAPIService.postRegister(user);
     }

@@ -14,6 +14,10 @@ import com.clj.fastble.data.BleDevice;
 import com.clj.fastble.exception.BleException;
 
 import java.lang.reflect.Method;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.Calendar;
+import java.util.TimeZone;
 
 import io.reactivex.Completable;
 import io.reactivex.Observable;
@@ -60,6 +64,7 @@ public class SleepDoc {
                     isConnected = true;
                     gatt = bleManager.getBluetoothGatt(bleDevice);
                     observer.onComplete();
+                    setTimeAndZone(_bleDevice, true);
                 }
 
                 @Override
@@ -155,6 +160,41 @@ public class SleepDoc {
                 }
             });
         });
+    }
+
+    public void setTimeAndZone(final BleDevice _bleDevice, final boolean isFactory) {
+        Calendar c = Calendar.getInstance();
+        TimeZone tz = c.getTimeZone();
+        int time = (int) (c.getTimeInMillis() / 1000);
+        int gmtOffset = (int) (tz.getRawOffset() / 1000);
+        Log.i("타임셋", "time: " + time + ", gmt : " + gmtOffset);
+
+        byte[] op = new byte[9];
+        op[0] = (byte)0x06;
+
+        ByteBuffer bb1 = ByteBuffer.wrap(new byte[4]);
+        bb1.order(ByteOrder.LITTLE_ENDIAN);
+        bb1.putInt(time);
+        ByteBuffer bb2 = ByteBuffer.wrap(new byte[4]);
+        bb2.order(ByteOrder.LITTLE_ENDIAN);
+        bb2.putInt(gmtOffset);
+
+        System.arraycopy(bb1.array(), 0, op, 1, 4);
+        System.arraycopy(bb2.array(), 0, op, 5, 4);
+        bleManager.write(_bleDevice, ServiceUUID.GENERAL.toString(), CharacteristicUUID.SYS_CMD.toString(), op,
+                new BleWriteCallback() {
+                    @Override
+                    public void onWriteSuccess(int current, int total, byte[] justWrite) {
+                        Log.i("타임셋", "timeSet: 성공");
+                        bleDevice = _bleDevice;
+                    }
+
+                    @Override
+                    public void onWriteFailure(BleException exception) {
+                        Log.i("타임셋", "timeSet: 실패");
+                    }
+                });
+
     }
 
     private synchronized void refreshDeviceCache(BluetoothGatt bluetoothGatt) {
