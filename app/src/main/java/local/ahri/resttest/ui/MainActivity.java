@@ -7,8 +7,10 @@ import android.os.Bundle;
 
 import com.clj.fastble.BleManager;
 import com.clj.fastble.callback.BleGattCallback;
+import com.clj.fastble.callback.BleScanCallback;
 import com.clj.fastble.data.BleDevice;
 import com.clj.fastble.exception.BleException;
+import com.clj.fastble.scan.BleScanRuleConfig;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -31,6 +33,7 @@ import io.reactivex.schedulers.Schedulers;
 import local.ahri.resttest.R;
 import local.ahri.resttest.databinding.ActivityMainBinding;
 import local.ahri.resttest.model.RestfulAPI;
+import local.ahri.resttest.model.dto.BleDeviceDTO;
 import local.ahri.resttest.model.dto.PageDTO;
 import local.ahri.resttest.sleep_doc.dto.RawdataDTO;
 import local.ahri.resttest.model.dto.UserDTO;
@@ -109,14 +112,39 @@ public class MainActivity extends AppCompatActivity {
 
 
         BleManager.getInstance().init(getApplication());
-        String macAddress = "D0:31:A1:4B:DC:34";
+
+        //BleScanRuleConfig scanRuleConfig = new BleScanRuleConfig.Builder().setDeviceName(true,"SleepDoc").build();
+        //BleManager.getInstance().initScanRule(scanRuleConfig);
+
+        //String macAddress;
+        viewModel.scanBle()
+                .observeOn(Schedulers.io())
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .doOnComplete(() -> Log.i("MainActivity", "블루투스 기기 스캔"))
+                .subscribe(BleDeviceDTO -> {if(BleDeviceDTO.getName().equals("SleepDoc")) {
+                    viewModel.connectSleepDoc(BleDeviceDTO.getMacAddress())
+                            .observeOn(Schedulers.io())
+                            .subscribeOn(AndroidSchedulers.mainThread())
+                            .doOnComplete(() -> Log.i("MainActivity", "on Complete"))
+                            .subscribe(() -> {viewModel.battery()
+                                    .observeOn(Schedulers.io())
+                                    .subscribeOn(AndroidSchedulers.mainThread())
+                                    .subscribe(data -> {Log.i("MainActivity", "배터리 "+ data);});},Throwable::printStackTrace);
+                }});
+
+        /*viewModel.battery()
+                 .observeOn(Schedulers.io())
+                 .subscribeOn(AndroidSchedulers.mainThread())
+                 .subscribe(data -> {Log.i("MainActivity", "배터리 "+ data);}), Throwable::printStackTrace);*/
+
+        /*String macAddress = "D0:31:A1:4B:DC:34";
 
 
         viewModel.connectSleepDoc(macAddress)
                 .observeOn(Schedulers.io())
                 .subscribeOn(AndroidSchedulers.mainThread())
                 .doOnComplete(() -> Log.i("MainActivity", "on Complete"))
-                .subscribe(() -> {}, Throwable::printStackTrace);
+                .subscribe(() -> {}, Throwable::printStackTrace);*/
 
     }
 
