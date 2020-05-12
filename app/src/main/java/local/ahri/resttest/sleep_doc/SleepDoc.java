@@ -9,6 +9,7 @@ import com.clj.fastble.BleManager;
 import com.clj.fastble.callback.BleGattCallback;
 import com.clj.fastble.callback.BleNotifyCallback;
 import com.clj.fastble.callback.BleReadCallback;
+import com.clj.fastble.callback.BleScanCallback;
 import com.clj.fastble.callback.BleWriteCallback;
 import com.clj.fastble.data.BleDevice;
 import com.clj.fastble.exception.BleException;
@@ -17,7 +18,10 @@ import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Calendar;
+import java.util.List;
 import java.util.TimeZone;
+
+import javax.security.auth.callback.Callback;
 
 import io.reactivex.Completable;
 import io.reactivex.Observable;
@@ -64,7 +68,6 @@ public class SleepDoc {
                     isConnected = true;
                     gatt = bleManager.getBluetoothGatt(bleDevice);
                     observer.onComplete();
-                    setTimeAndZone(_bleDevice, true);
                 }
 
                 @Override
@@ -162,7 +165,7 @@ public class SleepDoc {
         });
     }
 
-    public void setTimeAndZone(final BleDevice _bleDevice, final boolean isFactory) {
+    public void setTimeAndZone(final BleDevice _bleDevice) {
         Calendar c = Calendar.getInstance();
         TimeZone tz = c.getTimeZone();
         int time = (int) (c.getTimeInMillis() / 1000);
@@ -195,6 +198,23 @@ public class SleepDoc {
                     }
                 });
 
+    }
+
+    public Observable battery(){
+        return Observable.create(observer -> {
+            bleManager.read(bleDevice, ServiceUUID.BATTERY.toString(), CharacteristicUUID.BATTERY.toString(), new BleReadCallback() {
+                @Override
+                public void onReadSuccess(byte[] data) {
+                    observer.onNext(data[0]);
+                    Log.i("SleepDoc", "배터리 "+ data[0]);
+                    setTimeAndZone(bleDevice);
+                }
+                @Override
+                public void onReadFailure(BleException exception) {
+                    Log.d("SleepDoc","배터리 실패");
+                }
+            });
+        });
     }
 
     private synchronized void refreshDeviceCache(BluetoothGatt bluetoothGatt) {

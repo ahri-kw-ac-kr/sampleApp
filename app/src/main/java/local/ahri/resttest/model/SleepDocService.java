@@ -16,6 +16,10 @@ public class SleepDocService {
         return sleepDoc.getRawdata();
     }
 
+    public Observable battery(){
+        return sleepDoc.battery();
+    }
+
     public Completable connect(String macAddress) {
         Log.i("SleepdocService", "connect start");
         sleepDoc = new SleepDoc(macAddress);
