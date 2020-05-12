@@ -99,6 +99,24 @@ public interface RestfulAPIService {
     @PATCH("user/initpassword")
     Single<UserDTO> initPassword(@Field("username") String username, @Field("number") String number, @Field("password") String password);
 
+    /** POST
+     *  BaseURL/user/{id}/plusfriend
+     *  내 정보를 보여줄 사람 추가 **/
+    @POST("user/{id}/plusfriend")
+    Single<UserDTO> plusFriend(@Path("id") Long id, @Query("frname") String frname);
+
+    /** GET
+     *  BaseURL/user/1/mydoctor
+     *  나를 보고있는 사람 목록 **/
+    @GET("user/{id}/mydoctor")
+    Single<PageDTO<UserDTO>> myDoctor(@Path("id") Long id, @Query("page") String page);
+
+    /** Delete
+     *  BaseURL/user/delfriend
+     *  친구 삭제 **/
+    @DELETE("user/delfriend")
+    String delFriend(@Query("protectId") Long proId, @Query("patientId") Long patId);
+
     /******************************  GPS  ************************************/
     /** GET
      *  BaseURL/gps

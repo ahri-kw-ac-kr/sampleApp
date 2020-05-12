@@ -98,6 +98,18 @@ public class MainActivityViewModel extends ViewModel {
         return restfulAPIService.initPassword(username, number, password);
     }
 
+    public Single<UserDTO> plusFriend(Long id, String frname) {
+        return restfulAPIService.plusFriend(id, frname);
+    }
+
+    public Single<PageDTO<UserDTO>> myDoctor(Long id, String page){
+        return restfulAPIService.myDoctor(id, page);
+    }
+
+    public String delFriend(Long proId, Long patId){
+        return restfulAPIService.delFriend(proId, patId);
+    }
+
     /************************ GPS ***********************/
     public Single<PageDTO<GPSDTO>> getAllGPS() {
         return restfulAPIService.getAllGPS();
